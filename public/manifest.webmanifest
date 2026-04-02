@@ -1,0 +1,9 @@
+﻿{
+  "name": "Family Expense Management",
+  "short_name": "FEM",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0EA5E9",
+  "theme_color": "#0EA5E9",
+  "icons": []
+}

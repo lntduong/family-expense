@@ -274,7 +274,7 @@ export function CategoryManager() {
 					categories.map((category) => (
 						<div
 							key={category.id}
-							className='flex items-center gap-3 p-3 rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm transition-all duration-200 hover:border-muted-foreground/30'
+							className='flex items-center gap-3 p-3 rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm transition-all duration-200 hover:border-muted-foreground/30 min-w-0 overflow-hidden'
 						>
 							{editingId === category.id ? (
 								<>
@@ -290,24 +290,26 @@ export function CategoryManager() {
 										onChange={(e) =>
 											setFormData({ ...formData, name: e.target.value })
 										}
-										className='flex-1'
+										className='flex-1 min-w-0'
 										autoFocus
 									/>
-									<div className='flex gap-2 shrink-0'>
+									<div className='flex gap-1 shrink-0'>
 										<Button
 											size='sm'
 											onClick={handleSubmit}
-											className='gap-2'
+											className='h-8 w-8 p-0'
+											title='Lưu'
 										>
 											<CheckIcon className='h-4 w-4' />
-											Lưu
 										</Button>
 										<Button
 											size='sm'
 											variant='outline'
 											onClick={cancelEdit}
+											className='h-8 w-8 p-0'
+											title='Hủy'
 										>
-											Hủy
+											✕
 										</Button>
 									</div>
 								</>
@@ -320,25 +322,25 @@ export function CategoryManager() {
 									>
 										{category.icon}
 									</div>
-									<span className='flex-1 font-medium'>{category.name}</span>
-									<div className='flex gap-2 shrink-0'>
+									<span className='flex-1 font-medium truncate min-w-0'>{category.name}</span>
+									<div className='flex gap-1 shrink-0'>
 										<Button
 											size='sm'
 											variant='outline'
 											onClick={() => startEdit(category)}
-											className='gap-2'
+											className='h-8 w-8 p-0'
+											title='Sửa'
 										>
 											<Pencil1Icon className='h-4 w-4' />
-											Sửa
 										</Button>
 										<Button
 											size='sm'
 											variant='outline'
 											onClick={() => handleDelete(category.id)}
-											className='gap-2 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30'
+											className='h-8 w-8 p-0 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30'
+											title='Xóa'
 										>
 											<TrashIcon className='h-4 w-4' />
-											Xóa
 										</Button>
 									</div>
 								</>

@@ -81,7 +81,7 @@ export default async function AnalyticsPage({
 	]);
 
 	const serializedCategories = categories.map((cat) => ({
-		category: cat.category,
+		category: cat.category || 'Khác',
 		_sum: { amount: Number(cat._sum.amount || 0) },
 	}));
 
@@ -114,9 +114,9 @@ export default async function AnalyticsPage({
 	const averageDaily = nonZeroDays > 0 ? total / nonZeroDays : 0;
 
 	// Find highest spending category
-	const highestCategory = serializedCategories.reduce(
+	const highestCategory = serializedCategories.reduce<{ name: string; amount: number }>(
 		(max, cat) =>
-			cat._sum.amount > max.amount ? { name: cat.category, amount: cat._sum.amount } : max,
+			cat._sum.amount > max.amount ? { name: cat.category || 'Khác', amount: cat._sum.amount } : max,
 		{ name: '', amount: 0 },
 	);
 

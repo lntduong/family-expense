@@ -37,7 +37,7 @@ export default async function SettlementPage({
 
 	const full = Number(total._sum.amount || 0);
 	const serializedCategories = byCategory.map((c) => ({
-		category: c.category,
+		category: c.category || 'Khác',
 		amount: Number(c._sum.amount || 0),
 	}));
 

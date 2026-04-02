@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { getQRSettings, type QRSettingsData } from '@/components/widgets/QRSettings';
 import { DownloadIcon, GearIcon } from '@radix-ui/react-icons';
 
-export default function QrPage() {
+function QrContent() {
 	const params = useSearchParams();
 	const initialAmount = Number(params.get('amount') || 0);
 	const [amountStr, setAmountStr] = useState('');
@@ -203,5 +203,13 @@ export default function QrPage() {
 				</div>
 			)}
 		</div>
+	);
+}
+
+export default function QrPage() {
+	return (
+		<Suspense fallback={<div className="p-8 text-center text-muted-foreground">Đang tải...</div>}>
+			<QrContent />
+		</Suspense>
 	);
 }

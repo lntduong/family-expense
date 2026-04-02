@@ -55,7 +55,7 @@ export function MonthComparison({
 			[currentMonthName]: current,
 			[previousMonthName]: previous,
 		};
-	}).filter(d => d[currentMonthName] > 0 || d[previousMonthName] > 0);
+	}).filter((d: any) => d[currentMonthName] > 0 || d[previousMonthName] > 0);
 
 	const formatCurrency = (value: number) => {
 		if (value >= 1000000) return `${(value / 1000000).toFixed(1)}Tr`;

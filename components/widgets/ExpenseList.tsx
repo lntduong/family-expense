@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -175,7 +175,7 @@ export function ExpenseList({
 				<div className='space-y-6'>
 					{sortedDates.map((dateKey) => {
 						const dayExpenses = groupedByDate[dateKey];
-						const dayTotal = dayExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+						const dayTotal = dayExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
 						const dateObj = new Date(dateKey);
 						
 						return (
@@ -200,7 +200,7 @@ export function ExpenseList({
 
 								{/* Expenses for this date */}
 								<div className='space-y-2 pl-2'>
-									{dayExpenses.map((exp) => (
+									{dayExpenses.map((exp: any) => (
 										<SwipeableExpenseItem
 											key={exp.id}
 											exp={exp}

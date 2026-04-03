@@ -1,13 +1,32 @@
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BudgetProgress } from '@/components/widgets/BudgetProgress';
-import { Charts } from '@/components/widgets/Charts';
 import { MonthCalendar } from '@/components/widgets/MonthCalendar';
-import { MonthComparison } from '@/components/widgets/MonthComparison';
 import { BudgetWarning } from '@/components/widgets/BudgetWarning';
-import { SpendingPrediction } from '@/components/widgets/SpendingPrediction';
+import { 
+	ChartsSkeleton, 
+	MonthComparisonSkeleton, 
+	SpendingPredictionSkeleton,
+	MonthCalendarSkeleton 
+} from '@/components/widgets/Skeletons';
+
+// Dynamic imports for heavy components
+const Charts = dynamic(() => import('@/components/widgets/Charts').then(mod => ({ default: mod.Charts })), {
+	loading: () => <ChartsSkeleton />,
+	ssr: false,
+});
+
+const MonthComparison = dynamic(() => import('@/components/widgets/MonthComparison').then(mod => ({ default: mod.MonthComparison })), {
+	loading: () => <MonthComparisonSkeleton />,
+});
+
+const SpendingPrediction = dynamic(() => import('@/components/widgets/SpendingPrediction').then(mod => ({ default: mod.SpendingPrediction })), {
+	loading: () => <SpendingPredictionSkeleton />,
+});
 
 export default async function AnalyticsPage({
 	searchParams,
@@ -155,10 +174,12 @@ export default async function AnalyticsPage({
 				<h1 className='text-3xl font-bold tracking-tight'>
 					Thống kê & Phân tích
 				</h1>
-				<MonthCalendar
-					currentMonth={targetMonth + 1}
-					currentYear={targetYear}
-				/>
+				<Suspense fallback={<MonthCalendarSkeleton />}>
+					<MonthCalendar
+						currentMonth={targetMonth + 1}
+						currentYear={targetYear}
+					/>
+				</Suspense>
 			</div>
 
 			{/* Budget Warning - Shows at top if near/over budget */}

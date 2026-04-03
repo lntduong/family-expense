@@ -1,16 +1,15 @@
-﻿import { getServerSession } from 'next-auth';
+﻿import { Suspense } from 'react';
+import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { BudgetProgress } from '@/components/widgets/BudgetProgress';
 import { ExpenseList } from '@/components/widgets/ExpenseList';
 import { QuickAdd } from '@/components/widgets/QuickAdd';
 import { BudgetForm } from '@/components/widgets/BudgetForm';
 import { BudgetWarning } from '@/components/widgets/BudgetWarning';
-
 import { MonthCalendar } from '@/components/widgets/MonthCalendar';
+import { ExpenseListSkeleton, MonthCalendarSkeleton } from '@/components/widgets/Skeletons';
 
 export default async function DashboardPage({
 	searchParams,
@@ -32,7 +31,7 @@ export default async function DashboardPage({
 	const monthEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59);
 	const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
 
-	const [monthlyTotal, budget, rawExpenses, categories] =
+	const [monthlyTotal, budget, rawExpenses, expenseCategories, userCategories] =
 		await Promise.all([
 			prisma.expense.aggregate({
 				_sum: { amount: true },
@@ -49,6 +48,12 @@ export default async function DashboardPage({
 				by: ['category'],
 				_sum: { amount: true },
 				where: { userId, date: { gte: monthStart, lte: monthEnd } },
+			}),
+			// Prefetch user categories for QuickAdd
+			prisma.category.findMany({
+				where: { userId },
+				select: { id: true, name: true, icon: true, color: true },
+				orderBy: { name: 'asc' },
 			}),
 		]);
 
@@ -86,14 +91,16 @@ export default async function DashboardPage({
 			{/* Quick Add - First thing user sees */}
 			<div className='glass-card macos-shadow-md p-6'>
 				<h2 className='text-lg font-semibold mb-4'>Ghi nhanh chi tiêu</h2>
-				<QuickAdd userId={userId} />
+				<QuickAdd categories={userCategories} />
 			</div>
 
 			{/* Month Calendar */}
-			<MonthCalendar
-				currentMonth={targetMonth + 1}
-				currentYear={targetYear}
-			/>
+			<Suspense fallback={<MonthCalendarSkeleton />}>
+				<MonthCalendar
+					currentMonth={targetMonth + 1}
+					currentYear={targetYear}
+				/>
+			</Suspense>
 
 			{/* Stats Cards */}
 			<div className='grid grid-cols-2 gap-4'>
@@ -138,7 +145,9 @@ export default async function DashboardPage({
 			</div>
 
 			{/* Expense History */}
-			<ExpenseList initial={expenses} userRole={(session?.user as any)?.role} />
+			<Suspense fallback={<ExpenseListSkeleton />}>
+				<ExpenseList initial={expenses} userRole={(session?.user as any)?.role} />
+			</Suspense>
 		</div>
 	);
 }

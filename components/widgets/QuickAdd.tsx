@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,38 +14,20 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 
-export function QuickAdd({ userId }: { userId: string }) {
+type Category = {
+	id: string;
+	name: string;
+	icon: string;
+	color: string;
+};
+
+export function QuickAdd({ categories }: { categories: Category[] }) {
 	const router = useRouter();
 	const [amountStr, setAmountStr] = useState('');
-	const [category, setCategory] = useState('');
+	const [category, setCategory] = useState(categories[0]?.id || '');
 	const [note, setNote] = useState('');
 	const [date, setDate] = useState<Date>(new Date());
 	const [loading, setLoading] = useState(false);
-	const [categories, setCategories] = useState<Array<{
-		id: string;
-		name: string;
-		icon: string;
-		color: string;
-	}>>([]);
-
-	// Fetch categories on mount
-	useEffect(() => {
-		async function fetchCategories() {
-			try {
-				const res = await fetch('/api/categories');
-				if (res.ok) {
-					const data = await res.json();
-					setCategories(data);
-					if (data.length > 0 && !category) {
-						setCategory(data[0].id);
-					}
-				}
-			} catch (error) {
-				console.error('Error fetching categories:', error);
-			}
-		}
-		fetchCategories();
-	}, []);
 
 	const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		let rawValue = e.target.value.replace(/\D/g, '');

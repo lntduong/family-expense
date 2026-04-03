@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
-// Cập nhật địa chỉ tới server LLM local của bạn
-const LLM_API_URL = 'http://100.100.66.15:8045/v1/chat/completions';
+const LLM_API_URL = process.env.AI_API_URL;
+const AI_API_KEY = process.env.AI_API_KEY;
+const AI_MODEL = process.env.AI_MODEL;
 
 export async function POST(req: Request) {
 	try {
@@ -39,20 +40,23 @@ Quy tắc xuất kết quả:
 - Cấu trúc JSON bắt buộc: {"amount": <số_tiền_dạng_số>, "note": "<nội_dung_ngắn_gọn>", "categoryId": "<id_hạng_mục_hoặc_null>"}
 `;
 
+		const headers: Record<string, string> = {
+			'Content-Type': 'application/json',
+		};
+		if (AI_API_KEY) {
+			headers['Authorization'] = `Bearer ${AI_API_KEY}`;
+		}
+
 		const response = await fetch(LLM_API_URL, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				// "Authorization": "Bearer YOUR_TOKEN", // Mở comment nếu LLM server cần token
-			},
+			headers: headers,
 			body: JSON.stringify({
-				// THAY ĐỔI: Chỉnh tên model cho đúng với model đang chạy trên server của bạn
-				model: 'gpt-4o-mini', // Sử dụng model từ danh sách có sẵn
+				model: AI_MODEL,
 				messages: [
 					{ role: 'system', content: systemPrompt },
 					{ role: 'user', content: text },
 				],
-				temperature: 0.1, // Để thấp để kết quả JSON ra chuẩn xác, hạn chế sáng tạo
+				temperature: 0.1,
 				max_tokens: 150,
 			}),
 			// fetch options để tránh timeout với LLM phản hồi chậm (tuỳ theo môi trường Node)

@@ -115,9 +115,11 @@ export function ExpenseList({
 			i.category?.toLowerCase().includes(query.toLowerCase()),
 	);
 
-	// Group by date
+	// Group by date - use UTC date to avoid timezone issues
 	const groupedByDate = filtered.reduce((acc, exp) => {
-		const dateKey = format(new Date(exp.date), 'yyyy-MM-dd');
+		const d = new Date(exp.date);
+		// Format using UTC to get the original date stored in DB
+		const dateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 		if (!acc[dateKey]) {
 			acc[dateKey] = [];
 		}
@@ -167,7 +169,9 @@ export function ExpenseList({
 					{sortedDates.map((dateKey) => {
 						const dayExpenses = groupedByDate[dateKey];
 						const dayTotal = dayExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
-						const dateObj = new Date(dateKey);
+						// Parse dateKey as UTC to display correctly
+						const [year, month, day] = dateKey.split('-').map(Number);
+						const dateObj = new Date(year, month - 1, day);
 						
 						return (
 							<div key={dateKey} className='space-y-2'>
@@ -175,7 +179,7 @@ export function ExpenseList({
 								<div className='flex items-center justify-between py-2 border-b border-border/50'>
 									<div className='flex items-center gap-3'>
 										<div className='h-10 w-10 rounded-xl bg-muted flex items-center justify-center'>
-											<span className='text-lg font-bold'>{format(dateObj, 'd')}</span>
+											<span className='text-lg font-bold'>{day}</span>
 										</div>
 										<div>
 											<p className='font-medium'>{format(dateObj, 'EEEE', { locale: vi })}</p>

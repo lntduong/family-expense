@@ -54,3 +54,4 @@ prisma/*.db-journal
 *.pid
 *.seed
 *.pid.lock
+*.history

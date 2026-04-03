@@ -1,0 +1,42 @@
+name: NAS AI Config
+version: 1.0.0
+schema: v1
+
+models:
+  # ⚡ FAST - dùng hàng ngày (rẻ + nhanh)
+  - name: ⚡ Fast (Gemini Flash)
+    provider: openai
+    model: gemini-3-flash
+    apiBase: http://100.100.66.15:8045/v1
+    apiKey: sk-antigravity
+
+  # 🧠 SMART - code tốt, reasoning mạnh
+  - name: 🧠 Smart (Claude Sonnet 3.5)
+    provider: openai
+    model: claude-3-5-sonnet-20241022
+    apiBase: http://100.100.66.15:8045/v1
+    apiKey: sk-antigravity
+
+  # 🔥 BEST QUALITY - mạnh nhất (nhưng chậm hơn)
+  - name: 🔥 Best (Claude Opus 4)
+    provider: openai
+    model: claude-opus-4
+    apiBase: http://100.100.66.15:8045/v1
+    apiKey: sk-antigravity
+
+  # 💻 CODING - tối ưu cho dev
+  - name: 💻 Coding (GPT-4o Mini)
+    provider: openai
+    model: gpt-4o-mini
+    apiBase: http://100.100.66.15:8045/v1
+    apiKey: sk-antigravity
+
+  # 🧪 EXPERIMENT - thử model mới
+  - name: 🧪 Gemini Pro
+    provider: openai
+    model: gemini-3-pro
+    apiBase: http://100.100.66.15:8045/v1
+    apiKey: sk-antigravity
+
+# Set default model
+defaultModel: ⚡ Fast (Gemini Flash)

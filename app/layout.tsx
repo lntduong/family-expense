@@ -11,8 +11,9 @@ import { BottomNav } from '@/components/widgets/BottomNav';
 
 const beVietnamPro = Be_Vietnam_Pro({
 	subsets: ['latin', 'vietnamese'],
-	weight: ['300', '400', '500', '600', '700'],
+	weight: ['400', '600'],
 	variable: '--font-sans',
+	display: 'swap',
 });
 
 export const metadata: Metadata = {

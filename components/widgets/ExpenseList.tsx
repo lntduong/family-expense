@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { TrashIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, PanInfo } from 'framer-motion';
 
 // Category display mapping
 const CATEGORY_DISPLAY: Record<string, { icon: string; color: string; name: string }> = {
@@ -40,12 +40,6 @@ function SwipeableExpenseItem({
 	onDelete: (id: string) => void;
 }) {
 	const x = useMotionValue(0);
-	const background = useTransform(
-		x,
-		[-100, 0],
-		['rgba(239, 68, 68, 1)', 'rgba(239, 68, 68, 0)']
-	);
-	const deleteOpacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0]);
 	const cat = getCategoryDisplay(exp.category);
 
 	const handleDragEnd = (event: any, info: PanInfo) => {
@@ -58,26 +52,23 @@ function SwipeableExpenseItem({
 
 	return (
 		<div className='relative overflow-hidden rounded-xl'>
-			{/* Delete background */}
+			{/* Delete background - simplified, no motion transforms */}
 			{canDelete && (
-				<motion.div
-					className='absolute inset-0 flex items-center justify-end pr-6 rounded-xl'
-					style={{ background }}
-				>
-					<motion.div style={{ opacity: deleteOpacity }} className='text-white'>
-						<TrashIcon className='h-6 w-6' />
-					</motion.div>
-				</motion.div>
+				<div className='absolute inset-0 flex items-center justify-end pr-6 rounded-xl bg-red-500'>
+					<TrashIcon className='h-6 w-6 text-white' />
+				</div>
 			)}
 
-			{/* Swipeable content */}
+			{/* Swipeable content - optimized */}
 			<motion.div
+				layout={false}
 				drag={canDelete ? 'x' : false}
 				dragConstraints={{ left: -120, right: 0 }}
-				dragElastic={0.1}
+				dragElastic={0}
+				dragMomentum={false}
 				onDragEnd={handleDragEnd}
-				style={{ x }}
-				className='flex items-center gap-3 p-3 rounded-xl bg-background border border-border/50 hover:border-border transition-colors relative cursor-grab active:cursor-grabbing'
+				style={{ x, willChange: 'transform' }}
+				className='flex items-center gap-3 p-3 rounded-xl bg-background border border-border/50 hover:border-border relative cursor-grab active:cursor-grabbing'
 			>
 				{/* Category Icon */}
 				<div className={`h-11 w-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${cat.color}`}>

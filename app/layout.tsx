@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 	title: 'Family Expense Management',
 	description: 'Quản lý chi tiêu gia đình tối giản',
 	manifest: '/manifest.webmanifest',
+	icons: {
+		icon: '/icon.svg',
+		apple: '/icon-192.svg',
+	},
 };
 
 export default function RootLayout({

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0EA5E9"/>
+      <stop offset="100%" style="stop-color:#0284C7"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="36" fill="url(#bg)"/>
+  <rect x="36" y="60" width="120" height="82" rx="9" fill="white" opacity="0.95"/>
+  <path d="M36 75 Q36 60 51 60 L141 60 Q156 60 156 75 L156 82 L36 82 Z" fill="white"/>
+  <rect x="51" y="71" width="45" height="3" rx="1.5" fill="#0EA5E9" opacity="0.3"/>
+  <text x="96" y="124" font-family="system-ui, -apple-system, sans-serif" font-size="45" font-weight="700" fill="#0EA5E9" text-anchor="middle">₫</text>
+</svg>

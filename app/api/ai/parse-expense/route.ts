@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
-const LLM_API_URL = process.env.AI_API_URL;
-const AI_API_KEY = process.env.AI_API_KEY;
-const AI_MODEL = process.env.AI_MODEL;
+const LLM_API_URL = process.env.AI_API_URL || '';
+const AI_API_KEY = process.env.AI_API_KEY || '';
+const AI_MODEL = process.env.AI_MODEL || '';
 
 export async function POST(req: Request) {
 	try {

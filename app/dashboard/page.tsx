@@ -1,4 +1,4 @@
-﻿import { Suspense } from 'react';
+import { Suspense } from 'react';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
@@ -43,6 +43,7 @@ export default async function DashboardPage({
 			prisma.expense.findMany({
 				where: { userId, date: { gte: monthStart, lte: monthEnd } },
 				orderBy: { date: 'desc' },
+				include: { categoryRef: true },
 			}),
 			prisma.expense.groupBy({
 				by: ['category'],
@@ -57,12 +58,10 @@ export default async function DashboardPage({
 			}),
 		]);
 
-	const expenses = rawExpenses
-		.map((exp) => ({
-			...exp,
-			amount: Number(exp.amount),
-		}))
-		.slice(0, 10);
+	const expenses = rawExpenses.map((exp) => ({
+		...exp,
+		amount: Number(exp.amount),
+	}));
 
 	const total = Number(monthlyTotal._sum.amount || 0);
 

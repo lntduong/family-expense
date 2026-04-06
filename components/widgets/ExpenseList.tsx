@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { TrashIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { TrashIcon, MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { motion, useMotionValue, PanInfo } from 'framer-motion';
@@ -29,6 +29,24 @@ function getCategoryDisplay(category: string) {
 	};
 }
 
+function getExpenseDisplay(exp: any) {
+	// Priority 1: Use the linked Category object (categoryRef)
+	if (exp.categoryRef) {
+		return {
+			icon: exp.categoryRef.icon || '📁',
+			color: 'bg-primary/10 text-primary',
+			name: exp.categoryRef.name,
+			customColor: exp.categoryRef.color, // hex color for inline style
+		};
+	}
+	// Priority 2: Use old string-based category field
+	if (exp.category) {
+		return { ...getCategoryDisplay(exp.category), customColor: undefined };
+	}
+	// Fallback
+	return { icon: '📦', color: 'bg-gray-500/10 text-gray-600', name: 'Khác', customColor: undefined };
+}
+
 // Swipeable expense item component
 function SwipeableExpenseItem({
 	exp,
@@ -40,7 +58,7 @@ function SwipeableExpenseItem({
 	onDelete: (id: string) => void;
 }) {
 	const x = useMotionValue(0);
-	const cat = getCategoryDisplay(exp.category);
+	const cat = getExpenseDisplay(exp);
 
 	const handleDragEnd = (event: any, info: PanInfo) => {
 		if (info.offset.x < -100 && userRole !== 'HUSBAND') {
@@ -52,14 +70,11 @@ function SwipeableExpenseItem({
 
 	return (
 		<div className='relative overflow-hidden rounded-xl'>
-			{/* Delete background - simplified, no motion transforms */}
 			{canDelete && (
 				<div className='absolute inset-0 flex items-center justify-end pr-6 rounded-xl bg-red-500'>
 					<TrashIcon className='h-6 w-6 text-white' />
 				</div>
 			)}
-
-			{/* Swipeable content - optimized */}
 			<motion.div
 				layout={false}
 				drag={canDelete ? 'x' : false}
@@ -71,7 +86,10 @@ function SwipeableExpenseItem({
 				className='flex items-center gap-3 p-3 rounded-xl bg-background border border-border/50 hover:border-border relative cursor-grab active:cursor-grabbing'
 			>
 				{/* Category Icon */}
-				<div className={`h-11 w-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${cat.color}`}>
+				<div
+					className={`h-11 w-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${cat.customColor ? '' : cat.color}`}
+					style={cat.customColor ? { backgroundColor: cat.customColor + '20', color: cat.customColor } : undefined}
+				>
 					{cat.icon}
 				</div>
 
@@ -96,6 +114,8 @@ function SwipeableExpenseItem({
 	);
 }
 
+const DATES_PER_PAGE = 5;
+
 export function ExpenseList({
 	initial,
 	userRole,
@@ -106,8 +126,12 @@ export function ExpenseList({
 	const router = useRouter();
 	const [items, setItems] = useState(initial);
 	const [query, setQuery] = useState('');
+	const [page, setPage] = useState(1);
 
 	useEffect(() => setItems(initial), [initial]);
+
+	// Reset về trang 1 khi search
+	useEffect(() => { setPage(1); }, [query]);
 
 	const filtered = items.filter(
 		(i) =>
@@ -115,19 +139,25 @@ export function ExpenseList({
 			i.category?.toLowerCase().includes(query.toLowerCase()),
 	);
 
-	// Group by date - use UTC date to avoid timezone issues
-	const groupedByDate = filtered.reduce((acc, exp) => {
-		const d = new Date(exp.date);
-		// Format using UTC to get the original date stored in DB
-		const dateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-		if (!acc[dateKey]) {
-			acc[dateKey] = [];
-		}
-		acc[dateKey].push(exp);
-		return acc;
-	}, {} as Record<string, any[]>);
+	// Group by date
+	const groupedByDate = useMemo(() => {
+		return filtered.reduce((acc, exp) => {
+			const d = new Date(exp.date);
+			const dateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+			if (!acc[dateKey]) acc[dateKey] = [];
+			acc[dateKey].push(exp);
+			return acc;
+		}, {} as Record<string, any[]>);
+	}, [filtered]);
 
-	const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+	const sortedDates = useMemo(
+		() => Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a)),
+		[groupedByDate]
+	);
+
+	// Pagination
+	const totalPages = Math.max(1, Math.ceil(sortedDates.length / DATES_PER_PAGE));
+	const pagedDates = sortedDates.slice((page - 1) * DATES_PER_PAGE, page * DATES_PER_PAGE);
 
 	async function remove(id: string) {
 		const res = await fetch(`/api/expenses?id=${id}`, { method: 'DELETE' });
@@ -165,49 +195,111 @@ export function ExpenseList({
 					<p>Chưa có khoản chi nào</p>
 				</div>
 			) : (
-				<div className='space-y-6'>
-					{sortedDates.map((dateKey) => {
-						const dayExpenses = groupedByDate[dateKey];
-						const dayTotal = dayExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
-						// Parse dateKey as UTC to display correctly
-						const [year, month, day] = dateKey.split('-').map(Number);
-						const dateObj = new Date(year, month - 1, day);
-						
-						return (
-							<div key={dateKey} className='space-y-2'>
-								{/* Date Header */}
-								<div className='flex items-center justify-between py-2 border-b border-border/50'>
-									<div className='flex items-center gap-3'>
-										<div className='h-10 w-10 rounded-xl bg-muted flex items-center justify-center'>
-											<span className='text-lg font-bold'>{day}</span>
-										</div>
-										<div>
-											<p className='font-medium'>{format(dateObj, 'EEEE', { locale: vi })}</p>
-											<p className='text-xs text-muted-foreground'>
-												{format(dateObj, 'MMMM yyyy', { locale: vi })}
-											</p>
-										</div>
-									</div>
-									<p className='font-semibold text-primary'>
-										-{dayTotal.toLocaleString('vi-VN')} ₫
-									</p>
-								</div>
+				<>
+					<div className='space-y-6'>
+						{pagedDates.map((dateKey) => {
+							const dayExpenses = groupedByDate[dateKey];
+							const dayTotal = dayExpenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
+							const [year, month, day] = dateKey.split('-').map(Number);
+							const dateObj = new Date(year, month - 1, day);
 
-								{/* Expenses for this date */}
-								<div className='space-y-2 pl-2'>
-									{dayExpenses.map((exp: any) => (
-										<SwipeableExpenseItem
-											key={exp.id}
-											exp={exp}
-											userRole={userRole}
-											onDelete={remove}
-										/>
-									))}
+							return (
+								<div key={dateKey} className='space-y-2'>
+									{/* Date Header */}
+									<div className='flex items-center justify-between py-2 border-b border-border/50'>
+										<div className='flex items-center gap-3'>
+											<div className='h-10 w-10 rounded-xl bg-muted flex items-center justify-center'>
+												<span className='text-lg font-bold'>{day}</span>
+											</div>
+											<div>
+												<p className='font-medium'>{format(dateObj, 'EEEE', { locale: vi })}</p>
+												<p className='text-xs text-muted-foreground'>
+													{format(dateObj, 'MMMM yyyy', { locale: vi })}
+												</p>
+											</div>
+										</div>
+										<p className='font-semibold text-primary'>
+											-{dayTotal.toLocaleString('vi-VN')} ₫
+										</p>
+									</div>
+
+									{/* Expenses for this date */}
+									<div className='space-y-2 pl-2'>
+										{dayExpenses.map((exp: any) => (
+											<SwipeableExpenseItem
+												key={exp.id}
+												exp={exp}
+												userRole={userRole}
+												onDelete={remove}
+											/>
+										))}
+									</div>
 								</div>
+							);
+						})}
+					</div>
+
+					{/* Pagination */}
+					{totalPages > 1 && (
+						<div className='flex items-center justify-between pt-4 border-t border-border/50'>
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={() => setPage((p) => Math.max(1, p - 1))}
+								disabled={page === 1}
+								className='gap-1'
+							>
+								<ChevronLeftIcon className='h-4 w-4' />
+								Trước
+							</Button>
+
+							{/* Page numbers */}
+							<div className='flex items-center gap-1'>
+								{Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+									// Show first, last, current ±1
+									const show = p === 1 || p === totalPages || Math.abs(p - page) <= 1;
+									const showEllipsisBefore = p === page - 2 && p > 2;
+									const showEllipsisAfter = p === page + 2 && p < totalPages - 1;
+
+									if (showEllipsisBefore || showEllipsisAfter) {
+										return <span key={p} className='px-1 text-muted-foreground text-sm'>…</span>;
+									}
+									if (!show) return null;
+
+									return (
+										<button
+											key={p}
+											onClick={() => setPage(p)}
+											className={`h-8 w-8 rounded-lg text-sm font-medium transition-all ${
+												p === page
+													? 'bg-primary text-primary-foreground shadow-sm'
+													: 'hover:bg-muted text-muted-foreground hover:text-foreground'
+											}`}
+										>
+											{p}
+										</button>
+									);
+								})}
 							</div>
-						);
-					})}
-				</div>
+
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+								disabled={page === totalPages}
+								className='gap-1'
+							>
+								Sau
+								<ChevronRightIcon className='h-4 w-4' />
+							</Button>
+						</div>
+					)}
+
+					{/* Summary */}
+					<p className='text-center text-xs text-muted-foreground'>
+						Trang {page}/{totalPages} • {sortedDates.length} ngày • {filtered.length} khoản
+					</p>
+				</>
 			)}
 		</div>
 	);

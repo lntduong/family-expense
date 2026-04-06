@@ -1,0 +1,40 @@
+{
+  "packageId": "com.yang.family",
+  "host": "yang-family.vercel.app",
+  "name": "Family Expense",
+  "launcherName": "FamilyExpense",
+  "display": "standalone",
+  "themeColor": "#0EA5E9",
+  "navigationColor": "#0EA5E9",
+  "navigationColorDark": "#0EA5E9",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
+  "backgroundColor": "#0EA5E9",
+  "enableNotifications": true,
+  "startUrl": "/dashboard",
+  "iconUrl": "https://yang-family.vercel.app/icon-512.svg",
+  "maskableIconUrl": "https://yang-family.vercel.app/icon-512.svg",
+  "monochromeIconUrl": "https://yang-family.vercel.app/icon-512.svg",
+  "splashScreenFadeOutDuration": 300,
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "generatorApp": "bubblewrap-cli",
+  "useBrowserOnChromeOS": false,
+  "isChromeOSOnly": false,
+  "alphaDependencies": false,
+  "signingKey": {
+    "path": "twa-release.jks",
+    "alias": "twa",
+    "password": "changeit"
+  },
+  "playStore": {
+    "defaultUrl": "https://yang-family.vercel.app/",
+    "enabled": true,
+    "useDigitalAssetLinks": true
+  },
+  "shortcuts": [],
+  "additionalTrustedOrigins": [],
+  "orientation": "default",
+  "fullScopeUrl": "https://yang-family.vercel.app/",
+  "minSdkVersion": 19
+}

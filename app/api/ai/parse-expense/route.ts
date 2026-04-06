@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 
-const LLM_API_URL = process.env.AI_API_URL || '';
-const AI_API_KEY = process.env.AI_API_KEY || '';
-const AI_MODEL = process.env.AI_MODEL || '';
+const LLM_API_URL =
+	process.env.AI_API_URL || 'http://100.100.66.15:8045/v1/chat/completions';
+const AI_API_KEY = process.env.AI_API_KEY || 'sk-antigravity';
+const AI_MODEL = process.env.AI_MODEL || 'gemini-3.1-pro';
 
 export async function POST(req: Request) {
 	try {
@@ -65,9 +66,14 @@ Quy tắc xuất kết quả:
 
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.error('Lỗi từ LLM API:', errorText);
+			console.error('Lỗi từ LLM API (status ' + response.status + '):', errorText);
+			let errorMsg = `AI server trả lỗi ${response.status}`;
+			try {
+				const errJson = JSON.parse(errorText);
+				errorMsg = errJson?.error?.message || errJson?.error || errorMsg;
+			} catch {}
 			return NextResponse.json(
-				{ error: 'Không thể nhận phản hồi từ AI server.' },
+				{ error: errorMsg },
 				{ status: 500 },
 			);
 		}
@@ -89,9 +95,15 @@ Quy tắc xuất kết quả:
 			data: parsedData,
 		});
 	} catch (error: any) {
-		console.error('Lỗi parse expense AI:', error);
+		console.error('====== LỖI FETCH AI ======');
+		console.error('URL Gọi AI:', LLM_API_URL);
+		console.error('Chi tiết:', error.cause || error.message || error);
 		return NextResponse.json(
-			{ error: 'Lỗi trong quá trình xử lý: ' + error.message },
+			{
+				error:
+					'Lỗi trong quá trình xử lý: ' +
+					(error.cause?.message || error.message),
+			},
 			{ status: 500 },
 		);
 	}

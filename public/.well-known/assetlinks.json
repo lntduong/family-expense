@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.yang.family",
+      "sha256_cert_fingerprints": [
+        "CD:7F:3B:CF:2A:FD:88:D3:BB:5F:6F:2C:3F:99:A9:30:33:84:C6:7B:09:6C:DC:DF:3C:E6:F0:97:01:80:DD:B9"
+      ]
+    }
+  }
+]

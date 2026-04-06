@@ -11,8 +11,16 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Never proxy API calls or non-GET requests through the offline cache.
+  if (request.method !== "GET" || url.pathname.startsWith("/api/")) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((resp) => resp || fetch(event.request).catch(() => caches.match("/")))
+    caches.match(request).then((resp) => resp || fetch(request).catch(() => caches.match("/")))
   );
 });
 

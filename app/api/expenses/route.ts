@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { expenseSchema } from "@/lib/validators";
 import { getServerSession } from "next-auth";
@@ -10,7 +10,22 @@ export async function POST(req: Request) {
   const body = await req.json();
   const parsed = expenseSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
-  const exp = await prisma.expense.create({ data: { ...parsed.data, userId: session.user.id as string } });
+
+  const data: any = { ...parsed.data, userId: session.user.id as string };
+
+  // If categoryId provided, also fill legacy `category` string field for backward compatibility
+  if (data.categoryId) {
+    const cat = await prisma.category.findUnique({
+      where: { id: data.categoryId },
+      select: { name: true },
+    });
+    if (cat) data.category = cat.name;
+  }
+
+  const exp = await prisma.expense.create({
+    data,
+    include: { categoryRef: true },
+  });
   return NextResponse.json(exp);
 }
 

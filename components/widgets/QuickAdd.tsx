@@ -72,7 +72,7 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 			window.SpeechRecognition || window.webkitSpeechRecognition;
 
 		if (!SpeechRecognitionCtor) {
-			alert('Trinh duyet cua ban khong ho tro nhan dien giong noi. Hay thu Chrome hoac Safari moi nhat.');
+			alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy thử Chrome hoặc Safari mới nhất.');
 			return;
 		}
 
@@ -80,7 +80,7 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 			await ensureMicrophoneAccess();
 		} catch (error) {
 			console.error('Microphone access error:', error);
-			alert('Khong mo duoc microphone. Hay kiem tra quyen micro trong trinh duyet va Windows, sau do thu lai.');
+			alert('Không mở được microphone. Hãy kiểm tra quyền micro trong trình duyệt và Windows, sau đó thử lại.');
 			return;
 		}
 
@@ -169,18 +169,18 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 
 			if (event.error === 'not-allowed') {
 				alert(
-					'Web dang bi chan quyen micro. Neu mo bang dien thoai qua IP LAN, hay thu HTTPS hoac cap lai quyen micro cho trinh duyet.',
+					'Web đang bị chặn quyền micro. Nếu mở bằng điện thoại qua IP LAN, hãy thử HTTPS hoặc cấp lại quyền micro cho trình duyệt.',
 				);
 			} else if (event.error === 'network') {
 				alert(
-					'Loi mang khi nhan dien giong noi. Tinh nang speech-to-text cua trinh duyet can Internet de hoat dong.',
+					'Lỗi mạng khi nhận diện giọng nói. Tính năng speech-to-text của trình duyệt cần Internet để hoạt động.',
 				);
 			} else if (event.error === 'no-speech') {
 				alert(
-					'Khong nghe thay giong noi. Hay kiem tra micro dang dung dung thiet bi input, noi gan micro hon va giu im lang xung quanh khi thu lai.',
+					'Không nghe thấy giọng nói. Hãy kiểm tra micro đang dùng đúng thiết bị input, nói gần micro hơn và giữ im lặng xung quanh khi thử lại.',
 				);
 			} else {
-				alert('Loi nhan dien giong noi: ' + event.error);
+				alert('Lỗi nhận diện giọng nói: ' + event.error);
 			}
 		};
 
@@ -194,7 +194,7 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 			} catch (error) {
 				console.error('Speech recognition start error:', error);
 				setIsListening(false);
-				alert('Khong the khoi dong nhan dien giong noi. Hay tai lai trang va thu lai.');
+				alert('Không thể khởi động nhận diện giọng nói. Hãy tải lại trang và thử lại.');
 			}
 		}, 150);
 	};
@@ -256,17 +256,17 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 					{isListening ? (
 						<>
 							<Mic className='w-4 h-4 animate-pulse text-red-500' />
-							Dang nghe...
+							Đang nghe...
 						</>
 					) : aiParsing ? (
 						<>
 							<Loader2 className='w-4 h-4 animate-spin' />
-							AI dang xu ly...
+							AI đang xử lý...
 						</>
 					) : (
 						<>
 							<Mic className='w-4 h-4' />
-							Doc de ghi nhanh (AI)
+							Đọc để ghi nhanh (AI)
 						</>
 					)}
 				</Button>
@@ -276,7 +276,7 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 				<Input
 					type='text'
 					inputMode='numeric'
-					placeholder='So tien'
+					placeholder='Số tiền'
 					value={amountStr}
 					onChange={handleAmountChange}
 					required
@@ -288,14 +288,14 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 			</div>
 			<Select value={category} onValueChange={setCategory}>
 				<SelectTrigger>
-					<SelectValue placeholder='Chon danh muc' />
+					<SelectValue placeholder='Chọn danh mục' />
 				</SelectTrigger>
 				<SelectContent>
 					{categories.length === 0 ? (
 						<div className='px-2 py-6 text-center text-sm text-muted-foreground'>
-							Chua co danh muc.
+							Chưa có danh mục.
 							<br />
-							Vao Cai dat de them.
+							Vào cài đặt để xem thêm.
 						</div>
 					) : (
 						categories.map((cat) => (
@@ -318,12 +318,12 @@ export function QuickAdd({ categories }: { categories: Category[] }) {
 				}}
 			/>
 			<Textarea
-				placeholder='Ghi chu'
+				placeholder='Ghi chú'
 				value={note}
 				onChange={(e) => setNote(e.target.value)}
 			/>
 			<Button type='submit' className='w-full' disabled={loading}>
-				{loading ? 'Dang luu...' : 'Luu chi tieu'}
+				{loading ? 'Đang lưu...' : 'Lưu chi tiêu'}
 			</Button>
 		</form>
 	);

@@ -61,11 +61,12 @@ export default async function AnalyticsPage({
 	const [
 		monthlyTotal,
 		budget,
-		categories,
+		monthExpenses,
 		yearExpenses,
 		rawExpenses,
 		prevMonthTotal,
-		prevCategories,
+		prevMonthExpenses,
+		userCategories,
 	] = await Promise.all([
 		prisma.expense.aggregate({
 			_sum: { amount: true },
@@ -74,10 +75,10 @@ export default async function AnalyticsPage({
 		prisma.budget.findFirst({
 			where: { userId, month: targetMonth + 1, year: targetYear },
 		}),
-		prisma.expense.groupBy({
-			by: ['category'],
-			_sum: { amount: true },
+		// Full expenses this month with categoryRef for grouping
+		prisma.expense.findMany({
 			where: { userId, date: { gte: monthStart, lte: monthEnd } },
+			select: { amount: true, category: true, categoryId: true, categoryRef: { select: { name: true, icon: true, color: true } } },
 		}),
 		prisma.expense.findMany({
 			where: { userId, date: { gte: yearStart, lte: yearEnd } },
@@ -92,17 +93,52 @@ export default async function AnalyticsPage({
 			_sum: { amount: true },
 			where: { userId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
 		}),
-		prisma.expense.groupBy({
-			by: ['category'],
-			_sum: { amount: true },
+		prisma.expense.findMany({
 			where: { userId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
+			select: { amount: true, category: true, categoryId: true, categoryRef: { select: { name: true } } },
+		}),
+		// User custom categories for reference
+		prisma.category.findMany({
+			where: { userId },
+			select: { id: true, name: true, icon: true, color: true },
 		}),
 	]);
 
-	const serializedCategories = categories.map((cat) => ({
-		category: cat.category || 'Khác',
-		_sum: { amount: Number(cat._sum.amount || 0) },
-	}));
+	// Helper: get display name for an expense row
+	function getCatName(exp: { category: string | null; categoryRef: { name: string } | null }): string {
+		if (exp.categoryRef?.name) return exp.categoryRef.name;
+		if (exp.category) return exp.category;
+		return 'Khác';
+	}
+
+	// Build category summary by grouping manually (supports both old & new category system)
+	const catMap = new Map<string, { name: string; icon: string; color: string; amount: number }>();
+	for (const exp of monthExpenses) {
+		const name = getCatName(exp);
+		const existing = catMap.get(name);
+		// Find icon/color: from categoryRef first, then userCategories lookup
+		const userCat = exp.categoryRef
+			? userCategories.find((c) => c.name === exp.categoryRef!.name)
+			: userCategories.find((c) => c.name === exp.category);
+		const icon = exp.categoryRef?.icon || userCat?.icon || '📦';
+		const color = exp.categoryRef?.color || userCat?.color || '#6b7280';
+		if (existing) {
+			existing.amount += Number(exp.amount);
+		} else {
+			catMap.set(name, { name, icon, color, amount: Number(exp.amount) });
+		}
+	}
+	const serializedCategories = Array.from(catMap.values())
+		.map((c) => ({ category: c.name, icon: c.icon, color: c.color, _sum: { amount: c.amount } }))
+		.sort((a, b) => b._sum.amount - a._sum.amount);
+
+	// Previous month category summary
+	const prevCatMap = new Map<string, number>();
+	for (const exp of prevMonthExpenses) {
+		const name = getCatName(exp);
+		prevCatMap.set(name, (prevCatMap.get(name) || 0) + Number(exp.amount));
+	}
+	const prevCategoriesSummary = Array.from(prevCatMap.entries()).map(([category, amount]) => ({ category, amount }));
 
 	const total = Number(monthlyTotal._sum.amount || 0);
 	const prevTotal = Number(prevMonthTotal._sum.amount || 0);
@@ -133,26 +169,21 @@ export default async function AnalyticsPage({
 	const averageDaily = nonZeroDays > 0 ? total / nonZeroDays : 0;
 
 	// Find highest spending category
-	const highestCategory = serializedCategories.reduce<{ name: string; amount: number }>(
-		(max, cat) =>
-			cat._sum.amount > max.amount ? { name: cat.category || 'Khác', amount: cat._sum.amount } : max,
-		{ name: '', amount: 0 },
-	);
+	const highestCategory = serializedCategories[0]
+		? { name: serializedCategories[0].category, icon: serializedCategories[0].icon, amount: serializedCategories[0]._sum.amount }
+		: { name: '', icon: '', amount: 0 };
 
 	// Comparison data
 	const currentMonthData = {
 		total,
-		byCategory: categories.map(c => ({
-			category: c.category || 'Khác',
-			amount: Number(c._sum.amount || 0),
+		byCategory: serializedCategories.map((c) => ({
+			category: c.category,
+			amount: c._sum.amount,
 		})),
 	};
 	const previousMonthData = {
 		total: prevTotal,
-		byCategory: prevCategories.map(c => ({
-			category: c.category || 'Khác',
-			amount: Number(c._sum.amount || 0),
-		})),
+		byCategory: prevCategoriesSummary,
 	};
 
 	// Month names
@@ -167,6 +198,7 @@ export default async function AnalyticsPage({
 		? now.getDate()
 		: daysInMonth;
 	const daysLeft = Math.max(0, daysInMonth - currentDay);
+
 
 	return (
 		<div className='space-y-6'>
@@ -239,16 +271,11 @@ export default async function AnalyticsPage({
 					<CardContent>
 						{highestCategory.name ? (
 							<>
-								<div className='text-2xl font-bold capitalize'>
-									{highestCategory.name === 'food'
-										? 'Ăn uống'
-										: highestCategory.name === 'shopping'
-										? 'Mua sắm'
-										: highestCategory.name === 'bills'
-										? 'Hóa đơn'
-										: highestCategory.name === 'kids'
-										? 'Con cái'
-										: highestCategory.name}
+								<div className='flex items-center gap-2'>
+									{highestCategory.icon && (
+										<span className='text-2xl'>{highestCategory.icon}</span>
+									)}
+									<div className='text-2xl font-bold'>{highestCategory.name}</div>
 								</div>
 								<p className='text-xs text-muted-foreground mt-2 font-medium'>
 									{highestCategory.amount.toLocaleString('vi-VN')} ₫

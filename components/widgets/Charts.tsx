@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import {
 	ResponsiveContainer,
@@ -31,13 +31,14 @@ export function Charts({
 	dailyData,
 	monthlyData,
 }: {
-	pieData: { category: string; _sum: { amount: number } }[];
+	pieData: { category: string; icon?: string; color?: string; _sum: { amount: number } }[];
 	dailyData: { day: number; total: number }[];
 	monthlyData: { month: number; total: number }[];
 }) {
 	const pData = pieData.map((d) => ({
-		name: d.category,
+		name: d.icon ? `${d.icon} ${d.category}` : d.category,
 		value: d._sum.amount,
+		color: d.color,
 	}));
 
 	const formatCurrency = (value: number) => {
@@ -174,7 +175,7 @@ export function Charts({
 								{pData.map((entry, index) => (
 									<Cell
 										key={`cell-${index}`}
-										fill={COLORS[index % COLORS.length]}
+										fill={entry.color || COLORS[index % COLORS.length]}
 									/>
 								))}
 							</Pie>

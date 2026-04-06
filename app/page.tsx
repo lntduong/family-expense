@@ -24,7 +24,7 @@ export default async function HomePage() {
 						</span>
 						Miễn phí sử dụng
 					</div>
-					
+
 					<h1 className='text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight'>
 						<span className='bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent'>
 							Quản lý chi tiêu
@@ -32,11 +32,10 @@ export default async function HomePage() {
 						<br />
 						<span className='text-foreground'>cho gia đình bạn</span>
 					</h1>
-					
+
 					<p className='text-lg text-muted-foreground leading-relaxed'>
-						Theo dõi chi tiêu hàng ngày, phân chia ngân sách hợp lý, 
-						tạo QR thanh toán nhanh chóng và xem báo cáo trực quan. 
-						Giúp vợ chồng đồng lòng trong tài chính gia đình.
+						Theo dõi chi tiêu hàng ngày, phân chia ngân sách hợp lý,
+						tạo QR thanh toán nhanh chóng và xem báo cáo trực quan.
 					</p>
 
 					{/* Features */}
@@ -95,7 +94,7 @@ export default async function HomePage() {
 									💰
 								</div>
 							</div>
-							
+
 							{/* Progress */}
 							<div className='space-y-2'>
 								<div className='flex justify-between text-sm'>

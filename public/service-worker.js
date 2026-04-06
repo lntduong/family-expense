@@ -1,20 +1,30 @@
-const CACHE_NAME = "fem-cache-v1";
-const NOTIFICATION_TIMES = [12, 18]; // 12:00 and 18:00
+const CACHE_NAME = "fem-cache-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.add("/")));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(["/", "/dashboard"])
+    )
+  );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  // Xoá cache cũ
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Never proxy API calls or non-GET requests through the offline cache.
+  // Không cache API, chỉ cache GET
   if (request.method !== "GET" || url.pathname.startsWith("/api/")) {
     return;
   }
@@ -24,67 +34,56 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// Handle periodic background sync for notifications
-self.addEventListener("periodicsync", (event) => {
-  if (event.tag === "expense-reminder") {
-    event.waitUntil(checkAndNotify());
-  }
-});
-
-// Handle push events (for future backend push)
+// Handle push notification từ server (tương lai)
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || "Family Expense";
+  const title = data.title || "Chi tiêu gia đình";
   const options = {
-    body: data.body || "Hãy vào app để điền thu chi bạn nhé! 💰",
-    icon: "/icon-192.svg",
-    badge: "/icon-192.svg",
+    body: data.body || "Đã đến giờ ghi chi tiêu! 📝",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
     vibrate: [200, 100, 200],
     tag: "expense-reminder",
     renotify: true,
+    data: { url: data.url || "/dashboard" },
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Handle notification click
+// Khi user bấm vào thông báo
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  const targetUrl = event.notification.data?.url || "/dashboard";
+
   event.waitUntil(
-    self.clients.matchAll({ type: "window" }).then((clients) => {
-      if (clients.length > 0) {
-        return clients[0].focus();
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      // Nếu đã có tab mở → focus tab đó
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
       }
-      return self.clients.openWindow("/dashboard");
+      // Chưa có → mở tab mới
+      return self.clients.openWindow(targetUrl);
     })
   );
 });
 
-// Check time and show notification
-async function checkAndNotify() {
-  const now = new Date();
-  const hour = now.getHours();
-  
-  if (NOTIFICATION_TIMES.includes(hour)) {
-    await self.registration.showNotification("Family Expense", {
-      body: "Hãy vào app để điền thu chi bạn nhé! 💰",
-      icon: "/icon-192.svg",
-      badge: "/icon-192.svg",
+// Message từ client (dùng để test thủ công)
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SHOW_NOTIFICATION") {
+    self.registration.showNotification("Chi tiêu gia đình", {
+      body: event.data.body || "Đã đến giờ ghi chi tiêu! 📝",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
       vibrate: [200, 100, 200],
       tag: "expense-reminder",
-      renotify: false,
+      data: { url: "/dashboard" },
     });
   }
-}
 
-// Message handler for manual notification trigger
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SHOW_NOTIFICATION") {
-    self.registration.showNotification("Family Expense", {
-      body: event.data.body || "Hãy vào app để điền thu chi bạn nhé! 💰",
-      icon: "/icon-192.svg",
-      badge: "/icon-192.svg",
-      vibrate: [200, 100, 200],
-      tag: "expense-reminder",
-    });
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
   }
 });

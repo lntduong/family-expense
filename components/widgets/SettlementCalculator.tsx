@@ -11,7 +11,7 @@ export function SettlementCalculator({
 	categories,
 }: {
 	total: number;
-	categories: { category: string; amount: number }[];
+	categories: { category: string; icon?: string; color?: string; amount: number }[];
 }) {
 	const [percent, setPercent] = useState<number>(50);
 
@@ -36,9 +36,19 @@ export function SettlementCalculator({
 					{categories.map((c) => (
 						<div
 							key={c.category}
-							className='flex justify-between border-b border-border/40 last:border-0 pb-2 last:pb-0'
+							className='flex justify-between items-center border-b border-border/40 last:border-0 pb-2 last:pb-0'
 						>
-							<span>{c.category}</span>
+							<div className='flex items-center gap-2'>
+								{c.icon ? (
+									<span className='text-base'>{c.icon}</span>
+								) : (
+									<span
+										className='w-3 h-3 rounded-full shrink-0'
+										style={{ backgroundColor: c.color || '#6b7280' }}
+									/>
+								)}
+								<span>{c.category}</span>
+							</div>
 							<span className='font-medium'>
 								{c.amount.toLocaleString('vi-VN')} VND
 							</span>
@@ -48,7 +58,7 @@ export function SettlementCalculator({
 
 				<div className='space-y-3 pt-2'>
 					<p className='text-sm font-medium'>
-						Đóng góp của người còn lại (Chồng/Vợ):
+						Đóng góp của người còn lại:
 					</p>
 					<div className='flex gap-2'>
 						<Button

@@ -1,8 +1,7 @@
 "use client";
 import { useEffect } from "react";
 
-const NOTIFICATION_HOURS = [12, 18]; // 12:00 and 18:00
-const STORAGE_KEY = "fem-last-notification";
+const NOTIFICATION_HOURS = [12, 18];
 
 export function SwRegister() {
   useEffect(() => {
@@ -16,38 +15,20 @@ export function SwRegister() {
 
 async function registerServiceWorker() {
   try {
-    const registration = await navigator.serviceWorker.register("/service-worker.js");
-    console.log("SW registered");
+    const registration = await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
+    console.log("SW registered:", registration.scope);
 
-    // Request notification permission
-    if ("Notification" in window && Notification.permission === "default") {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        console.log("Notification permission granted");
-      }
+    // Nếu đã có quyền thông báo → khởi động lịch ngay, không hỏi lại
+    if ("Notification" in window && Notification.permission === "granted") {
+      setupNotificationSchedule(registration);
     }
-
-    // Try to register periodic background sync (Chrome only)
-    if ("periodicSync" in registration) {
-      try {
-        await (registration as any).periodicSync.register("expense-reminder", {
-          minInterval: 60 * 60 * 1000, // 1 hour
-        });
-        console.log("Periodic sync registered");
-      } catch (e) {
-        console.log("Periodic sync not supported, using fallback");
-        setupFallbackNotifications(registration);
-      }
-    } else {
-      setupFallbackNotifications(registration);
-    }
+    // Nếu chưa có quyền → NotificationManager (banner) sẽ xử lý việc xin quyền
   } catch (error) {
-    console.error("SW registration failed:", error);
+    console.warn("SW registration failed:", error);
   }
 }
 
-function setupFallbackNotifications(registration: ServiceWorkerRegistration) {
-  // Check every minute if it's time to notify
+export function setupNotificationSchedule(registration: ServiceWorkerRegistration) {
   const checkAndNotify = () => {
     if (Notification.permission !== "granted") return;
 
@@ -55,30 +36,35 @@ function setupFallbackNotifications(registration: ServiceWorkerRegistration) {
     const hour = now.getHours();
     const minute = now.getMinutes();
 
-    // Only notify at the start of the hour (within first 5 minutes)
+    // Thông báo trong khoảng phút 0-4 của giờ đã định
     if (NOTIFICATION_HOURS.includes(hour) && minute < 5) {
-      const lastNotification = localStorage.getItem(STORAGE_KEY);
       const today = now.toDateString();
-      const key = `${today}-${hour}`;
+      const key = `fem-notified-${today}-${hour}`;
 
-      // Don't notify twice for the same hour
-      if (lastNotification !== key) {
-        localStorage.setItem(STORAGE_KEY, key);
-        
-        // Send message to service worker to show notification
+      // Không thông báo 2 lần trong cùng một giờ trong ngày
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, "1");
+
+        const messages = [
+          "Đã đến giờ ghi chi tiêu! 📝",
+          "Bạn đã chi tiêu gì hôm nay chưa? 💰",
+          "Nhắc nhở: điền chi tiêu để quản lý tốt hơn! 🏠",
+        ];
+        const body = messages[Math.floor(Math.random() * messages.length)];
+
         if (registration.active) {
           registration.active.postMessage({
             type: "SHOW_NOTIFICATION",
-            body: "Hãy vào app để điền thu chi bạn nhé! 💰",
+            body,
           });
         }
       }
     }
   };
 
-  // Check immediately
+  // Kiểm tra ngay lập tức
   checkAndNotify();
 
-  // Check every minute
+  // Kiểm tra mỗi phút
   setInterval(checkAndNotify, 60 * 1000);
 }

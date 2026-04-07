@@ -80,11 +80,12 @@ export async function POST(req: Request) {
   return NextResponse.json({ sent, failed, total: subscriptions.length });
 }
 
-// GET — dành cho test thủ công
+// GET — Vercel Cron gọi endpoint này (Vercel tự inject Authorization header)
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  return POST(req);
+  return POST(new Request(req.url, { method: 'POST', headers: req.headers }));
 }

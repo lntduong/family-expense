@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { CategoryManager } from '@/components/widgets/CategoryManager';
 import { QRSettings } from '@/components/widgets/QRSettings';
 import { LogoutButton } from '@/components/widgets/LogoutButton';
+import { NotificationSettings } from '@/components/widgets/NotificationSettings';
 
 export default async function SettingsPage() {
 	const session = await getServerSession(authOptions);
@@ -24,6 +25,9 @@ export default async function SettingsPage() {
 
 				{/* QR Settings */}
 				<QRSettings />
+
+				{/* Notification Settings */}
+				<NotificationSettings />
 
 				{/* Category Manager */}
 				<CategoryManager />

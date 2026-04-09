@@ -1,15 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { ChevronsUpDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 export function WorkspaceSwitcher({
@@ -41,31 +34,32 @@ export function WorkspaceSwitcher({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 max-w-[150px] justify-between text-xs font-semibold" disabled={isPending}>
-          <span className="truncate">{activeSpace?.name || 'Chọn nhóm'}</span>
-          {isPending ? (
-            <Loader2 className="ml-2 h-3 w-3 shrink-0 animate-spin opacity-50" />
-          ) : (
-            <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[200px]">
+    <div className="relative inline-block w-[150px] max-w-[40vw]">
+      <select
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-wait"
+        value={activeWorkspaceId || ''}
+        onChange={(e) => handleSwitch(e.target.value)}
+        disabled={isPending}
+      >
         {workspaces.map((workspace) => (
-          <DropdownMenuItem
-            key={workspace.id}
-            onClick={() => handleSwitch(workspace.id)}
-            className="flex items-center justify-between cursor-pointer"
-          >
+          <option key={workspace.id} value={workspace.id}>
             {workspace.name}
-            {workspace.id === activeSpace?.id && (
-              <Check className="h-4 w-4 text-green-500" />
-            )}
-          </DropdownMenuItem>
+          </option>
         ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </select>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="h-8 w-full justify-between text-xs font-semibold pointer-events-none" 
+        disabled={isPending}
+      >
+        <span className="truncate">{activeSpace?.name || 'Chọn nhóm'}</span>
+        {isPending ? (
+          <Loader2 className="ml-2 h-3 w-3 shrink-0 animate-spin opacity-50" />
+        ) : (
+          <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
+        )}
+      </Button>
+    </div>
   );
 }

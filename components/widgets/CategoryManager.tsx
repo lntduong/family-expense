@@ -325,6 +325,15 @@ export function CategoryManager() {
 										className='flex-1 min-w-0'
 										autoFocus
 									/>
+                  <select
+										value={formData.ruleType}
+										onChange={(e) => setFormData({ ...formData, ruleType: e.target.value as any })}
+										className="h-9 px-2 rounded-md border border-input bg-transparent shadow-sm text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+									>
+										<option value="NEEDS">Thiết yếu</option>
+										<option value="WANTS">Tận hưởng</option>
+										<option value="SAVINGS">Tích lũy</option>
+									</select>
 									<div className='flex gap-1 shrink-0'>
 										<Button
 											size='sm'

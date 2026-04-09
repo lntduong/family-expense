@@ -109,7 +109,7 @@ export function NotificationManager() {
           <div className='flex-1 min-w-0'>
             <p className='font-semibold text-sm'>Bật thông báo nhắc nhở?</p>
             <p className='text-xs text-muted-foreground mt-1'>
-              Nhắc nhở lúc <strong>12:00</strong> và <strong>18:00</strong> để ghi chi tiêu — ngay cả khi đóng app.
+              Nhắc nhở lúc <strong>9:00, 12:00, 15:00, 18:00, 21:00</strong> để ghi chi tiêu — ngay cả khi đóng app.
             </p>
             <div className='flex gap-2 mt-3'>
               <Button size='sm' onClick={requestPermission} className='flex-1 h-8 text-xs'>

@@ -120,13 +120,13 @@ export function NotificationSettings() {
     subscribed: {
       icon: <CheckCircle className='w-5 h-5 text-green-500' />,
       label: 'Đã bật',
-      desc: 'Bạn sẽ nhận thông báo lúc 12:00 và 18:00 hàng ngày.',
+      desc: 'Bạn sẽ nhận thông báo vào 9:00, 12:00, 15:00, 18:00 và 21:00 hàng ngày.',
       color: 'text-green-500',
     },
     unsubscribed: {
       icon: <Bell className='w-5 h-5 text-muted-foreground' />,
       label: 'Chưa bật',
-      desc: 'Bật để nhận nhắc nhở ghi chi tiêu lúc 12:00 và 18:00.',
+      desc: 'Bật để nhận nhắc nhở ghi chi tiêu vào 9:00, 12:00, 15:00, 18:00 và 21:00.',
       color: 'text-muted-foreground',
     },
   };

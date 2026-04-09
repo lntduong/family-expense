@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 // PATCH - Update category
 export async function PATCH(
@@ -22,11 +23,16 @@ export async function PATCH(
 			return NextResponse.json({ error: 'User not found' }, { status: 404 });
 		}
 
-		// Verify category belongs to user
+		// Verify category belongs to the current workspace
+		const workspaceId = await getCurrentWorkspaceId(user.id);
+		if (!workspaceId) {
+			return NextResponse.json({ error: 'No workspace found' }, { status: 400 });
+		}
+
 		const category = await prisma.category.findFirst({
 			where: {
 				id: params.id,
-				userId: user.id,
+				workspaceId: workspaceId,
 			},
 		});
 
@@ -88,11 +94,16 @@ export async function DELETE(
 			return NextResponse.json({ error: 'User not found' }, { status: 404 });
 		}
 
-		// Verify category belongs to user
+		// Verify category belongs to the current workspace
+		const workspaceId = await getCurrentWorkspaceId(user.id);
+		if (!workspaceId) {
+			return NextResponse.json({ error: 'No workspace found' }, { status: 400 });
+		}
+
 		const category = await prisma.category.findFirst({
 			where: {
 				id: params.id,
-				userId: user.id,
+				workspaceId: workspaceId,
 			},
 		});
 

@@ -309,51 +309,54 @@ export function CategoryManager() {
 							className='flex items-center gap-3 p-3 rounded-xl border-2 border-border bg-background/50 backdrop-blur-sm transition-all duration-200 hover:border-muted-foreground/30 min-w-0 overflow-hidden'
 						>
 							{editingId === category.id ? (
-								<>
-									{/* Edit Form */}
-									<div
-										className='flex items-center justify-center w-10 h-10 rounded-lg text-xl shrink-0'
-										style={{ backgroundColor: formData.color }}
-									>
-										{formData.icon}
-									</div>
-									<Input
-										value={formData.name}
-										onChange={(e) =>
-											setFormData({ ...formData, name: e.target.value })
-										}
-										className='flex-1 min-w-0'
-										autoFocus
-									/>
-                  <select
-										value={formData.ruleType}
-										onChange={(e) => setFormData({ ...formData, ruleType: e.target.value as any })}
-										className="h-9 px-2 rounded-md border border-input bg-transparent shadow-sm text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-									>
-										<option value="NEEDS">Thiết yếu</option>
-										<option value="WANTS">Tận hưởng</option>
-										<option value="SAVINGS">Tích lũy</option>
-									</select>
-									<div className='flex gap-1 shrink-0'>
-										<Button
-											size='sm'
-											onClick={handleSubmit}
-											className='h-8 w-8 p-0'
-											title='Lưu'
+								<div className="flex flex-col w-full gap-3 py-1">
+									<div className="flex items-center gap-2">
+										<div
+											className='flex items-center justify-center w-10 h-10 rounded-lg text-xl shrink-0'
+											style={{ backgroundColor: formData.color }}
 										>
-											<CheckIcon className='h-4 w-4' />
-										</Button>
-										<Button
-											size='sm'
-											variant='outline'
-											onClick={cancelEdit}
-											className='h-8 w-8 p-0'
-											title='Hủy'
-										>
-											✕
-										</Button>
+											{formData.icon}
+										</div>
+										<Input
+											value={formData.name}
+											onChange={(e) =>
+												setFormData({ ...formData, name: e.target.value })
+											}
+											className='flex-1 min-w-0 font-medium'
+											autoFocus
+										/>
 									</div>
-								</>
+									<div className="flex items-center justify-between gap-2">
+										<select
+											value={formData.ruleType}
+											onChange={(e) => setFormData({ ...formData, ruleType: e.target.value as any })}
+											className="h-9 w-full flex-1 px-2 rounded-md border border-input bg-transparent shadow-sm text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+										>
+											<option value="NEEDS">Thiết yếu</option>
+											<option value="WANTS">Tận hưởng</option>
+											<option value="SAVINGS">Tích lũy</option>
+										</select>
+										<div className='flex gap-1 shrink-0'>
+											<Button
+												size='sm'
+												onClick={handleSubmit}
+												className='h-9 w-9 p-0 bg-green-500 hover:bg-green-600'
+												title='Lưu'
+											>
+												<CheckIcon className='h-4 w-4 text-white' />
+											</Button>
+											<Button
+												size='sm'
+												variant='outline'
+												onClick={cancelEdit}
+												className='h-9 w-9 p-0'
+												title='Hủy'
+											>
+												✕
+											</Button>
+										</div>
+									</div>
+								</div>
 							) : (
 								<>
 									{/* View Mode */}

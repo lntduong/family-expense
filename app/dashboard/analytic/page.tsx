@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BudgetProgress } from '@/components/widgets/BudgetProgress';
 import { MonthCalendar } from '@/components/widgets/MonthCalendar';
@@ -58,6 +59,15 @@ export default async function AnalyticsPage({
 	const yearStart = new Date(targetYear, 0, 1);
 	const yearEnd = new Date(targetYear, 11, 31, 23, 59, 59);
 
+	const workspaceId = await getCurrentWorkspaceId(userId);
+	if (!workspaceId) {
+		return (
+			<div className="flex h-[50vh] items-center justify-center text-muted-foreground">
+				Chưa có nhóm Không gian làm việc.
+			</div>
+		);
+	}
+
 	const [
 		monthlyTotal,
 		budget,
@@ -70,36 +80,36 @@ export default async function AnalyticsPage({
 	] = await Promise.all([
 		prisma.expense.aggregate({
 			_sum: { amount: true },
-			where: { userId, date: { gte: monthStart, lte: monthEnd } },
+			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 		}),
 		prisma.budget.findFirst({
-			where: { userId, month: targetMonth + 1, year: targetYear },
+			where: { workspaceId, month: targetMonth + 1, year: targetYear },
 		}),
 		// Full expenses this month with categoryRef for grouping
 		prisma.expense.findMany({
-			where: { userId, date: { gte: monthStart, lte: monthEnd } },
+			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 			select: { amount: true, category: true, categoryId: true, categoryRef: { select: { name: true, icon: true, color: true } } },
 		}),
 		prisma.expense.findMany({
-			where: { userId, date: { gte: yearStart, lte: yearEnd } },
+			where: { workspaceId, date: { gte: yearStart, lte: yearEnd } },
 			select: { date: true, amount: true },
 		}),
 		prisma.expense.findMany({
-			where: { userId, date: { gte: monthStart, lte: monthEnd } },
+			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 			select: { date: true, amount: true },
 		}),
 		// Previous month data
 		prisma.expense.aggregate({
 			_sum: { amount: true },
-			where: { userId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
+			where: { workspaceId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
 		}),
 		prisma.expense.findMany({
-			where: { userId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
+			where: { workspaceId, date: { gte: prevMonthStart, lte: prevMonthEnd } },
 			select: { amount: true, category: true, categoryId: true, categoryRef: { select: { name: true } } },
 		}),
 		// User custom categories for reference
 		prisma.category.findMany({
-			where: { userId },
+			where: { workspaceId },
 			select: { id: true, name: true, icon: true, color: true },
 		}),
 	]);

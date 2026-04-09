@@ -9,6 +9,11 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { DarkModeToggle } from '@/components/widgets/DarkModeToggle';
 import { BottomNav } from '@/components/widgets/BottomNav';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { WorkspaceSwitcher } from '@/components/widgets/WorkspaceSwitcher';
+import { cookies } from 'next/headers';
 
 const beVietnamPro = Be_Vietnam_Pro({
 	subsets: ['latin', 'vietnamese'],
@@ -32,11 +37,27 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const session = await getServerSession(authOptions);
+	const activeWorkspaceId = cookies().get('workspaceId')?.value;
+	let workspaces: any[] = [];
+
+	if (session?.user?.id) {
+		workspaces = await prisma.workspace.findMany({
+			where: {
+				OR: [
+					{ ownerId: session.user.id },
+					{ members: { some: { id: session.user.id } } },
+				],
+			},
+			select: { id: true, name: true }
+		});
+	}
+
 	return (
 		<html lang='vi' suppressHydrationWarning className={cn("font-sans", beVietnamPro.variable)}>
 			<body
@@ -52,9 +73,14 @@ export default function RootLayout({
 						<div className='max-w-4xl mx-auto px-4 pt-6 pb-24 space-y-6'>
 							<header className='flex items-center justify-between pb-4 mb-6'>
 								<Link href='/' className='text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent'>
-									Family Expense
+									Family
 								</Link>
-								<DarkModeToggle />
+								<div className="flex items-center gap-2">
+									{workspaces.length > 0 && (
+										<WorkspaceSwitcher workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} />
+									)}
+									<DarkModeToggle />
+								</div>
 							</header>
 							<main>{children}</main>
 						</div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 
 // GET - List all categories for current user
 export async function GET() {
@@ -19,8 +20,13 @@ export async function GET() {
 			return NextResponse.json({ error: 'User not found' }, { status: 404 });
 		}
 
+		const workspaceId = await getCurrentWorkspaceId(user.id);
+		if (!workspaceId) {
+			return NextResponse.json([]);
+		}
+
 		const categories = await prisma.category.findMany({
-			where: { userId: user.id },
+			where: { workspaceId },
 			orderBy: { createdAt: 'asc' },
 		});
 
@@ -60,12 +66,18 @@ export async function POST(request: Request) {
 			);
 		}
 
+		const workspaceId = await getCurrentWorkspaceId(user.id);
+		if (!workspaceId) {
+			return NextResponse.json({ error: 'No workspace found' }, { status: 400 });
+		}
+
 		const category = await prisma.category.create({
 			data: {
 				name,
 				icon: icon || '📁',
 				color: color || '#3b82f6',
 				userId: user.id,
+				workspaceId,
 			},
 		});
 

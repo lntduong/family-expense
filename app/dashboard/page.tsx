@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BudgetProgress } from '@/components/widgets/BudgetProgress';
 import { ExpenseList } from '@/components/widgets/ExpenseList';
@@ -31,28 +32,38 @@ export default async function DashboardPage({
 	const monthEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59);
 	const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
 
+	const workspaceId = await getCurrentWorkspaceId(userId);
+
+	if (!workspaceId) {
+		return (
+			<div className="flex h-[50vh] items-center justify-center text-muted-foreground">
+				Chưa có nhóm Không gian làm việc.
+			</div>
+		);
+	}
+
 	const [monthlyTotal, budget, rawExpenses, expenseCategories, userCategories] =
 		await Promise.all([
 			prisma.expense.aggregate({
 				_sum: { amount: true },
-				where: { userId, date: { gte: monthStart, lte: monthEnd } },
+				where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 			}),
 			prisma.budget.findFirst({
-				where: { userId, month: targetMonth + 1, year: targetYear },
+				where: { workspaceId, month: targetMonth + 1, year: targetYear },
 			}),
 			prisma.expense.findMany({
-				where: { userId, date: { gte: monthStart, lte: monthEnd } },
+				where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 				orderBy: { date: 'desc' },
 				include: { categoryRef: true },
 			}),
 			prisma.expense.groupBy({
 				by: ['category'],
 				_sum: { amount: true },
-				where: { userId, date: { gte: monthStart, lte: monthEnd } },
+				where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 			}),
-			// Prefetch user categories for QuickAdd
+			// Prefetch workspace categories for QuickAdd
 			prisma.category.findMany({
-				where: { userId },
+				where: { workspaceId },
 				select: { id: true, name: true, icon: true, color: true },
 				orderBy: { name: 'asc' },
 			}),

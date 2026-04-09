@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
 import { SettlementCalculator } from '@/components/widgets/SettlementCalculator';
 import { MonthCalendar } from '@/components/widgets/MonthCalendar';
 
@@ -23,13 +24,23 @@ export default async function SettlementPage({
 	const monthStart = new Date(targetYear, targetMonth, 1);
 	const monthEnd = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59);
 
+	const workspaceId = await getCurrentWorkspaceId(userId);
+
+	if (!workspaceId) {
+		return (
+			<div className="flex h-[50vh] items-center justify-center text-muted-foreground">
+				Chưa có nhóm Không gian làm việc.
+			</div>
+		);
+	}
+
 	const [totalAgg, expenses] = await Promise.all([
 		prisma.expense.aggregate({
 			_sum: { amount: true },
-			where: { userId, date: { gte: monthStart, lte: monthEnd } },
+			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 		}),
 		prisma.expense.findMany({
-			where: { userId, date: { gte: monthStart, lte: monthEnd } },
+			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 			select: {
 				amount: true,
 				category: true,

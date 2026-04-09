@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { expenseSchema } from "@/lib/validators";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getCurrentWorkspaceId } from "@/lib/workspace";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -12,6 +13,11 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
   const data: any = { ...parsed.data, userId: session.user.id as string };
+
+  const workspaceId = await getCurrentWorkspaceId(session.user.id);
+  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+  
+  data.workspaceId = workspaceId;
 
   // If categoryId provided, also fill legacy `category` string field for backward compatibility
   if (data.categoryId) {
@@ -35,7 +41,11 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const page = Number(searchParams.get("page") ?? 1);
   const pageSize = 20;
-  const where: any = { userId: session.user.id };
+  
+  const workspaceId = await getCurrentWorkspaceId(session.user.id);
+  if (!workspaceId) return NextResponse.json({ items: [], total: 0, page, pageSize });
+
+  const where: any = { workspaceId };
   if (searchParams.get("category")) where.category = searchParams.get("category");
   if (searchParams.get("q")) where.note = { contains: searchParams.get("q"), mode: "insensitive" };
   if (searchParams.get("from") && searchParams.get("to")) {
@@ -54,6 +64,9 @@ export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  await prisma.expense.deleteMany({ where: { id, userId: session.user.id as string } });
+  
+  const workspaceId = await getCurrentWorkspaceId(session.user.id);
+  
+  await prisma.expense.deleteMany({ where: { id, workspaceId } });
   return NextResponse.json({ ok: true });
 }

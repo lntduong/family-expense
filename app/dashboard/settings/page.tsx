@@ -5,10 +5,22 @@ import { CategoryManager } from '@/components/widgets/CategoryManager';
 import { QRSettings } from '@/components/widgets/QRSettings';
 import { LogoutButton } from '@/components/widgets/LogoutButton';
 import { NotificationSettings } from '@/components/widgets/NotificationSettings';
+import { WorkspaceSettings } from '@/components/widgets/WorkspaceSettings';
+import { getCurrentWorkspaceId } from '@/lib/workspace';
+import prisma from '@/lib/prisma';
 
 export default async function SettingsPage() {
 	const session = await getServerSession(authOptions);
-	if (!session) redirect('/login');
+	if (!session || !session.user) redirect('/login');
+
+	const workspaceId = await getCurrentWorkspaceId((session.user as any).id);
+	let activeWorkspace = null;
+	if (workspaceId) {
+		activeWorkspace = await prisma.workspace.findUnique({
+			where: { id: workspaceId },
+			select: { id: true, name: true, inviteCode: true, ownerId: true },
+		});
+	}
 
 	return (
 		<main className='min-h-screen pb-20'>
@@ -22,6 +34,9 @@ export default async function SettingsPage() {
 						Quản lý danh mục và thông tin thanh toán
 					</p>
 				</div>
+
+				{/* Workspace Settings */}
+				{activeWorkspace && <WorkspaceSettings activeWorkspace={activeWorkspace as any} />}
 
 				{/* QR Settings */}
 				<QRSettings />

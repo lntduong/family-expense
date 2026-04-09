@@ -22,6 +22,25 @@ model User {
   budgets           Budget[]
   categories        Category[]
   pushSubscriptions PushSubscription[]
+  ownedWorkspaces   Workspace[]        @relation("WorkspaceOwner")
+  workspaces        Workspace[]        @relation("WorkspaceMembers")
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  inviteCode  String   @unique
+  ownerId     String
+  owner       User     @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  
+  members     User[]   @relation("WorkspaceMembers")
+
+  expenses    Expense[]
+  budgets     Budget[]
+  categories  Category[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Expense {
@@ -39,8 +58,12 @@ model Expense {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@index([date])
   @@index([categoryId])
+  @@index([workspaceId])
 }
 
 model Budget {
@@ -52,7 +75,11 @@ model Budget {
   userId    String
   createdAt DateTime @default(now())
 
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@unique([month, year, userId])
+  @@index([workspaceId])
 }
 
 model Session {
@@ -73,8 +100,12 @@ model Category {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@unique([name, userId])
   @@index([userId])
+  @@index([workspaceId])
 }
 
 model VerificationToken {

@@ -38,7 +38,7 @@ export async function PATCH(
 		}
 
 		const body = await request.json();
-		const { name, icon, color } = body;
+		const { name, icon, color, ruleType } = body;
 
 		const updated = await prisma.category.update({
 			where: { id: params.id },
@@ -46,6 +46,7 @@ export async function PATCH(
 				...(name && { name }),
 				...(icon && { icon }),
 				...(color && { color }),
+				...(ruleType && { ruleType }),
 			},
 		});
 

@@ -23,6 +23,7 @@ interface Category {
 	name: string;
 	icon: string;
 	color: string;
+	ruleType: 'NEEDS' | 'WANTS' | 'SAVINGS';
 }
 
 const EMOJI_PRESETS = [
@@ -49,10 +50,16 @@ export function CategoryManager() {
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	
-	const [formData, setFormData] = useState({
+	const [formData, setFormData] = useState<{
+		name: string;
+		icon: string;
+		color: string;
+		ruleType: 'NEEDS' | 'WANTS' | 'SAVINGS';
+	}>({
 		name: '',
 		icon: '📁',
 		color: '#3b82f6',
+		ruleType: 'NEEDS',
 	});
 
 	useEffect(() => {
@@ -130,7 +137,7 @@ export function CategoryManager() {
 	}
 
 	function resetForm() {
-		setFormData({ name: '', icon: '📁', color: '#3b82f6' });
+		setFormData({ name: '', icon: '📁', color: '#3b82f6', ruleType: 'NEEDS' });
 	}
 
 	function startEdit(category: Category) {
@@ -138,6 +145,7 @@ export function CategoryManager() {
 			name: category.name,
 			icon: category.icon,
 			color: category.color,
+			ruleType: category.ruleType || 'NEEDS',
 		});
 		setEditingId(category.id);
 	}
@@ -210,6 +218,30 @@ export function CategoryManager() {
 									placeholder='Hoặc nhập emoji'
 									maxLength={2}
 								/>
+							</div>
+
+							<div>
+								<label className='text-sm font-medium mb-2 block'>Nhóm quản lý (Quy tắc 50/30/20)</label>
+								<div className='flex gap-2 mb-3'>
+									{[
+										{ id: 'NEEDS', label: 'Thiết yếu' },
+										{ id: 'WANTS', label: 'Tận hưởng' },
+										{ id: 'SAVINGS', label: 'Tích lũy' }
+									].map(rule => (
+										<button
+											key={rule.id}
+											type="button"
+											onClick={() => setFormData({ ...formData, ruleType: rule.id as any })}
+											className={`flex-1 py-2 px-1 rounded-lg border-2 text-xs font-semibold transition-all duration-200 ${
+												formData.ruleType === rule.id 
+												? `border-primary bg-primary/10 text-primary`
+												: 'border-border text-muted-foreground bg-background/50'
+											}`}
+										>
+											{rule.label}
+										</button>
+									))}
+								</div>
 							</div>
 
 							<div>
@@ -322,7 +354,12 @@ export function CategoryManager() {
 									>
 										{category.icon}
 									</div>
-									<span className='flex-1 font-medium truncate min-w-0'>{category.name}</span>
+									<span className='flex-1 font-medium truncate min-w-0'>
+										{category.name}
+										<span className='ml-2 text-[10px] uppercase font-bold text-muted-foreground/60'>
+											{category.ruleType === 'NEEDS' ? 'Thiết yếu' : category.ruleType === 'WANTS' ? 'Tận hưởng' : 'Tích lũy'}
+										</span>
+									</span>
 									<div className='flex gap-1 shrink-0'>
 										<Button
 											size='sm'

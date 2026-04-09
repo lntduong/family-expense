@@ -12,6 +12,12 @@ enum Role {
   HUSBAND
 }
 
+enum RuleType {
+  NEEDS
+  WANTS
+  SAVINGS
+}
+
 model User {
   id                String             @id @default(cuid())
   email             String             @unique
@@ -94,6 +100,7 @@ model Category {
   name      String
   icon      String    @default("📁")
   color     String    @default("#3b82f6")
+  ruleType  RuleType  @default(NEEDS)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   expenses  Expense[]

@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BudgetProgress } from '@/components/widgets/BudgetProgress';
 import { MonthCalendar } from '@/components/widgets/MonthCalendar';
 import { BudgetWarning } from '@/components/widgets/BudgetWarning';
+import { Rule503020Card } from '@/components/widgets/Rule503020Card';
+import { SpendingHeatmap } from '@/components/widgets/SpendingHeatmap';
 import { 
 	ChartsSkeleton, 
 	MonthComparisonSkeleton, 
@@ -88,7 +90,7 @@ export default async function AnalyticsPage({
 		// Full expenses this month with categoryRef for grouping
 		prisma.expense.findMany({
 			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
-			select: { amount: true, category: true, categoryId: true, categoryRef: { select: { name: true, icon: true, color: true } } },
+			select: { amount: true, category: true, categoryId: true, categoryRef: { select: { name: true, icon: true, color: true, ruleType: true } } },
 		}),
 		prisma.expense.findMany({
 			where: { workspaceId, date: { gte: yearStart, lte: yearEnd } },
@@ -110,7 +112,7 @@ export default async function AnalyticsPage({
 		// User custom categories for reference
 		prisma.category.findMany({
 			where: { workspaceId },
-			select: { id: true, name: true, icon: true, color: true },
+			select: { id: true, name: true, icon: true, color: true, ruleType: true },
 		}),
 	]);
 
@@ -141,6 +143,16 @@ export default async function AnalyticsPage({
 	const serializedCategories = Array.from(catMap.values())
 		.map((c) => ({ category: c.name, icon: c.icon, color: c.color, _sum: { amount: c.amount } }))
 		.sort((a, b) => b._sum.amount - a._sum.amount);
+
+	// 50/30/20 Rule Aggregation
+	const ruleSpent = { NEEDS: 0, WANTS: 0, SAVINGS: 0 };
+	for (const exp of monthExpenses) {
+		const userCat = exp.categoryRef
+			? userCategories.find((c) => c.name === exp.categoryRef!.name)
+			: userCategories.find((c) => c.name === exp.category);
+		const ruleType = exp.categoryRef?.ruleType || userCat?.ruleType || 'NEEDS';
+		ruleSpent[ruleType as keyof typeof ruleSpent] += Number(exp.amount);
+	}
 
 	// Previous month category summary
 	const prevCatMap = new Map<string, number>();
@@ -296,7 +308,15 @@ export default async function AnalyticsPage({
 						)}
 					</CardContent>
 				</Card>
+
+        {/* 50/30/20 Rule */}
+        <div className="md:col-span-3">
+          <Rule503020Card spent={ruleSpent} budgetLimit={budgetLimit} />
+        </div>
 			</div>
+
+      {/* Heatmap */}
+      <SpendingHeatmap data={yearExpenses} />
 
 			{/* Spending Prediction */}
 			<SpendingPrediction

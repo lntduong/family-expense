@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { ChevronsUpDown, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function WorkspaceSwitcher({
   workspaces,
@@ -34,32 +40,29 @@ export function WorkspaceSwitcher({
   }
 
   return (
-    <div className="relative inline-block w-[150px] max-w-[40vw]">
-      <select
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-wait"
-        value={activeWorkspaceId || ''}
-        onChange={(e) => handleSwitch(e.target.value)}
+    <div className="w-[150px] max-w-[40vw]">
+      <Select 
+        value={activeSpace?.id || activeWorkspaceId || ''} 
+        onValueChange={handleSwitch}
         disabled={isPending}
       >
-        {workspaces.map((workspace) => (
-          <option key={workspace.id} value={workspace.id}>
-            {workspace.name}
-          </option>
-        ))}
-      </select>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="h-8 w-full justify-between text-xs font-semibold pointer-events-none" 
-        disabled={isPending}
-      >
-        <span className="truncate">{activeSpace?.name || 'Chọn nhóm'}</span>
-        {isPending ? (
-          <Loader2 className="ml-2 h-3 w-3 shrink-0 animate-spin opacity-50" />
-        ) : (
-          <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
-        )}
-      </Button>
+        <SelectTrigger className="h-8 text-xs font-semibold px-3 overflow-hidden">
+          <div className="truncate flex-1 text-left">
+            {isPending ? (
+              <Loader2 className="h-3 w-3 shrink-0 animate-spin opacity-50" />
+            ) : (
+              <SelectValue placeholder="Chọn nhóm" />
+            )}
+          </div>
+        </SelectTrigger>
+        <SelectContent align="end" className="z-[100]">
+          {workspaces.map((workspace) => (
+            <SelectItem key={workspace.id} value={workspace.id}>
+              {workspace.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

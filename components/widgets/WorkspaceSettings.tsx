@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Users, Copy, Check, LogIn } from 'lucide-react';
+import { Users, Copy, Check, LogIn, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export function WorkspaceSettings({
   activeWorkspace,
@@ -21,7 +22,9 @@ export function WorkspaceSettings({
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [inviteCodeInput, setInviteCodeInput] = useState('');
+  const [createNameInput, setCreateNameInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -50,6 +53,36 @@ export function WorkspaceSettings({
       if (res.ok) {
         setSuccess(`Đã tham gia nhóm: ${data.workspaceName}`);
         setInviteCodeInput('');
+        router.refresh();
+      } else {
+        setError(data.error || 'Có lỗi xảy ra');
+      }
+    } catch {
+      setError('Lỗi kết nối mạng');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!createNameInput.trim()) return;
+
+    setLoading(true);
+    setError('');
+    
+    try {
+      const res = await fetch('/api/workspace', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: createNameInput.trim() }),
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setSuccess(`Đã tạo nhóm: ${data.workspaceName}`);
+        setCreateNameInput('');
+        setIsDialogOpen(false);
         router.refresh();
       } else {
         setError(data.error || 'Có lỗi xảy ra');
@@ -108,14 +141,48 @@ export function WorkspaceSettings({
                 maxLength={8}
                 className="font-mono uppercase transition-all"
               />
-              <Button type="submit" disabled={loading || !inviteCodeInput.trim()}>
+              <Button type="submit" disabled={loading || !inviteCodeInput.trim()} title="Tham gia">
                 <LogIn className="w-4 h-4" />
               </Button>
             </div>
-            {error && <p className="text-sm text-destructive font-medium">{error}</p>}
-            {success && <p className="text-sm text-green-500 font-medium">{success}</p>}
           </div>
         </form>
+
+        <div className="flex items-center justify-between pt-2">
+          {error && <p className="text-sm text-destructive font-medium">{error}</p>}
+          {success && <p className="text-sm text-green-500 font-medium">{success}</p>}
+          {!error && !success && <span />}
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                <Plus className="w-4 h-4 mr-1" />
+                Tạo nhóm mới
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="glass-card macos-shadow-lg max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Tạo không gian làm việc mới</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label>Tên không gian (Nhóm)</Label>
+                  <Input 
+                    placeholder="VD: Quỹ du lịch, Cá nhân..." 
+                    value={createNameInput}
+                    onChange={(e) => setCreateNameInput(e.target.value)}
+                    required
+                    maxLength={30}
+                    autoFocus
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading || !createNameInput.trim()}>
+                  {loading ? 'Đang tạo...' : 'Khởi tạo'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
 
       </CardContent>
     </Card>

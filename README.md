@@ -26,9 +26,12 @@
 - Thanh tiến độ trực quan
 - Cảnh báo thông minh (80%, 100%, vượt mức)
 
-### 👨‍👩‍👧 Vai trò gia đình
-- **Wife**: Nhập chi tiêu, quản lý danh mục
-- **Husband**: Xem chi tiêu, xác nhận chuyển tiền
+### 🏢 Không gian làm việc (Workspaces)
+- Kiến trúc **đa quỹ (Multi-workspace)** tách biệt hoàn toàn dữ liệu.
+- Phân tách riêng biệt cấu hình "Cá nhân" và "Chi tiêu chung gia đình".
+- Mời thành viên tham gia nhóm thông qua **Mã mời (Invite Code)** 8 ký tự.
+- Mỗi Không gian có danh sách Danh mục (Category) và Ngân sách (Budget) độc lập.
+- Tự động thay đổi báo cáo Thống kê Analytics theo không gian bạn đang chọn.
 
 ### 💳 Thanh toán
 - Tạo QR VietQR để nhận tiền
@@ -37,7 +40,7 @@
 
 ### 📱 PWA & Mobile
 - Cài đặt như app native (Add to Home Screen)
-- Thông báo nhắc nhở lúc 12h và 18h
+- Hệ thống **Push Notification** thông minh nhắc nhở ghi chép 5 khung giờ/ngày: 09:00, 12:00, 15:00, 18:00, 21:00.
 - Giao diện tối ưu cho mobile
 - Dark mode
 
@@ -229,41 +232,54 @@ family-expense-management/
 
 ```prisma
 model User {
-  id         String     @id @default(cuid())
-  email      String     @unique
-  password   String
-  role       Role       @default(WIFE)  // WIFE | HUSBAND
-  expenses   Expense[]
-  budgets    Budget[]
-  categories Category[]
+  id                String             @id @default(cuid())
+  email             String             @unique
+  password          String
+  role              Role               @default(WIFE)
+  ownedWorkspaces   Workspace[]        @relation("WorkspaceOwner")
+  workspaces        Workspace[]        @relation("WorkspaceMembers")
+  pushSubscriptions PushSubscription[]
+}
+
+model Workspace {
+  id          String     @id @default(cuid())
+  name        String
+  inviteCode  String     @unique
+  ownerId     String
+  owner       User       @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members     User[]     @relation("WorkspaceMembers")
+  expenses    Expense[]
+  budgets     Budget[]
+  categories  Category[]
 }
 
 model Expense {
-  id         String    @id @default(cuid())
-  amount     Decimal
-  category   String?
-  categoryId String?
-  note       String?
-  date       DateTime  @default(now())
-  recurring  Boolean   @default(false)
-  user       User      @relation(...)
+  id          String     @id @default(cuid())
+  amount      Decimal
+  category    String?
+  categoryId  String?
+  note        String?
+  date        DateTime   @default(now())
+  workspaceId String     
+  workspace   Workspace  @relation(...)
 }
 
 model Budget {
-  id     String  @id @default(cuid())
-  month  Int
-  year   Int
-  limit  Decimal
-  user   User    @relation(...)
+  id          String     @id @default(cuid())
+  month       Int
+  year        Int
+  limit       Decimal
+  workspaceId String
+  workspace   Workspace  @relation(...)
 }
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String
-  icon     String    @default("📁")
-  color    String    @default("#3b82f6")
-  user     User      @relation(...)
-  expenses Expense[]
+  id          String     @id @default(cuid())
+  name        String
+  icon        String     @default("📁")
+  color       String     @default("#3b82f6")
+  workspaceId String
+  workspace   Workspace  @relation(...)
 }
 ```
 
@@ -286,7 +302,10 @@ App đã được tối ưu cho mobile:
 
 ## 🔔 Push Notifications
 
-App gửi thông báo nhắc nhở lúc **12:00** và **18:00**:
+App gửi thông báo nhắc nhở tự động hóa qua hệ thống Vercel Cron kết nối với Web Push API:
+
+- 🕒 **Khung giờ gửi**: 09:00, 12:00, 15:00, 18:00, 21:00 (Múi giờ ICT UTC+7).
+- Nội dung thông báo tự động thay đổi theo ngữ cảnh thời gian (Nhắc ăn trưa, nhắc buổi tối...).
 
 > "Hãy vào app để điền thu chi bạn nhé! 💰"
 

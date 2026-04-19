@@ -327,11 +327,11 @@ export default async function AnalyticsPage({
 			{/* New Psychological & Transaction Analytics */}
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 				<TopTransactions expenses={monthExpenses as any} />
-				<TimeBasedHabits expenses={rawExpenses} />
+				<TimeBasedHabits expenses={rawExpenses.map(e => ({ ...e, date: e.date.toISOString() })) as any} />
 			</div>
 
       {/* Heatmap */}
-      <SpendingHeatmap data={yearExpenses} />
+      <SpendingHeatmap data={yearExpenses.map(e => ({ ...e, date: e.date.toISOString() })) as any} />
 
 			{/* Spending Prediction */}
 			<SpendingPrediction

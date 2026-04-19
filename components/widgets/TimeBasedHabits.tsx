@@ -1,10 +1,12 @@
+'use client';
+
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface TimeBasedHabitsProps {
   expenses: {
     amount: any;
-    date: Date;
+    date: string | Date;
   }[];
 }
 

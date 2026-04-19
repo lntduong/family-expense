@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface SpendingHeatmapProps {
-  data: { date: Date; amount: any }[];
+  data: { date: string | Date; amount: any }[];
 }
 
 export function SpendingHeatmap({ data }: SpendingHeatmapProps) {

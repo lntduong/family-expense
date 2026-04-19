@@ -9,9 +9,7 @@ import { BudgetProgress } from '@/components/widgets/BudgetProgress';
 import { MonthCalendar } from '@/components/widgets/MonthCalendar';
 import { BudgetWarning } from '@/components/widgets/BudgetWarning';
 import { Rule503020Card } from '@/components/widgets/Rule503020Card';
-import { SpendingHeatmap } from '@/components/widgets/SpendingHeatmap';
 import { TopTransactions } from '@/components/widgets/TopTransactions';
-import { TimeBasedHabits } from '@/components/widgets/TimeBasedHabits';
 import { SmartCutdownAlert } from '@/components/widgets/SmartCutdownAlert';
 import { 
 	ChartsSkeleton, 
@@ -32,6 +30,16 @@ const MonthComparison = dynamic(() => import('@/components/widgets/MonthComparis
 
 const SpendingPrediction = dynamic(() => import('@/components/widgets/SpendingPrediction').then(mod => ({ default: mod.SpendingPrediction })), {
 	loading: () => <SpendingPredictionSkeleton />,
+});
+
+const SpendingHeatmap = dynamic(() => import('@/components/widgets/SpendingHeatmap').then(mod => ({ default: mod.SpendingHeatmap })), {
+	ssr: false,
+	loading: () => <div className="h-64 rounded-xl bg-card animate-pulse border"></div>,
+});
+
+const TimeBasedHabits = dynamic(() => import('@/components/widgets/TimeBasedHabits').then(mod => ({ default: mod.TimeBasedHabits })), {
+	ssr: false,
+	loading: () => <div className="h-48 rounded-xl bg-card animate-pulse border"></div>,
 });
 
 export default async function AnalyticsPage({

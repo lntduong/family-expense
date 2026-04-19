@@ -10,46 +10,35 @@ import {
 } from "@/components/ui/tooltip";
 
 interface SpendingHeatmapProps {
-  data: { date: string | Date; amount: any }[];
+  /** Pre-aggregated map: { "2026-01-15": 500000, ... } */
+  dailyMap: Record<string, number>;
 }
 
-export function SpendingHeatmap({ data }: SpendingHeatmapProps) {
+export function SpendingHeatmap({ dailyMap }: SpendingHeatmapProps) {
   const { grid, maxAmount } = useMemo(() => {
-    // We want a 52x7 grid ending today (or ending end of this year if we want to align to generic calendar)
-    // For a classic Github heatmap, we map the last 365 days.
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Start date is 364 days ago
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - 364);
     
-    // Adjust start date to the Sunday before it to fully fill the first column
     const startDayOfWeek = startDate.getDay();
     startDate.setDate(startDate.getDate() - startDayOfWeek);
 
-    const dataMap = new Map<string, number>();
     let localMax = 0;
-    
-    data.forEach(d => {
-      const dayStr = new Date(d.date).toISOString().split('T')[0];
-      const amount = Number(d.amount);
-      dataMap.set(dayStr, (dataMap.get(dayStr) || 0) + amount);
-      if (dataMap.get(dayStr)! > localMax) {
-        localMax = dataMap.get(dayStr)!;
-      }
-    });
+    for (const val of Object.values(dailyMap)) {
+      if (val > localMax) localMax = val;
+    }
 
     const weeks = [];
-    let currentWeek = [];
+    let currentWeek: any[] = [];
     let d = new Date(startDate);
     
-    // Loop until we pass today AND it's a Saturday (end of week)
     while (d <= today || d.getDay() !== 0) {
-      if (d > today && d.getDay() === 0) break; // Break if we start a new week after today
+      if (d > today && d.getDay() === 0) break;
       
       const dateStr = d.toISOString().split('T')[0];
-      const amount = dataMap.get(dateStr) || 0;
+      const amount = dailyMap[dateStr] || 0;
       
       currentWeek.push({
         date: new Date(d),
@@ -66,17 +55,17 @@ export function SpendingHeatmap({ data }: SpendingHeatmapProps) {
     }
 
     return { grid: weeks, maxAmount: localMax };
-  }, [data]);
+  }, [dailyMap]);
 
   function getColor(amount: number) {
     if (amount === 0) return 'bg-muted/50';
     if (maxAmount === 0) return 'bg-green-200 dark:bg-green-900';
     
     const ratio = amount / maxAmount;
-    if (ratio < 0.2) return 'bg-[#9be9a8] dark:bg-[#0e4429]'; // GitHub lightest green
+    if (ratio < 0.2) return 'bg-[#9be9a8] dark:bg-[#0e4429]';
     if (ratio < 0.5) return 'bg-[#40c463] dark:bg-[#006d32]';
     if (ratio < 0.8) return 'bg-[#30a14e] dark:bg-[#26a641]';
-    return 'bg-[#216e39] dark:bg-[#39d353]'; // GitHub darkest green
+    return 'bg-[#216e39] dark:bg-[#39d353]';
   }
 
   return (
@@ -89,7 +78,7 @@ export function SpendingHeatmap({ data }: SpendingHeatmapProps) {
           <div className="flex gap-1 min-w-max">
             {grid.map((week, wIndex) => (
               <div key={wIndex} className="flex flex-col gap-1">
-                {week.map((day, dIndex) => (
+                {week.map((day: any, dIndex: number) => (
                   <TooltipProvider key={dIndex}>
                     <Tooltip delayDuration={50}>
                       <TooltipTrigger asChild>

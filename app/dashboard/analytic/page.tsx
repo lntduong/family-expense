@@ -86,7 +86,6 @@ export default async function AnalyticsPage({
 		budget,
 		monthExpenses,
 		yearExpenses,
-		rawExpenses,
 		prevMonthTotal,
 		prevMonthExpenses,
 		userCategories,
@@ -102,13 +101,11 @@ export default async function AnalyticsPage({
 		prisma.expense.findMany({
 			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 			select: { id: true, date: true, note: true, amount: true, category: true, categoryId: true, categoryRef: { select: { name: true, icon: true, color: true, ruleType: true } } },
+			orderBy: { amount: 'desc' },
 		}),
+		// Year expenses for heatmap + monthly chart (only date + amount)
 		prisma.expense.findMany({
 			where: { workspaceId, date: { gte: yearStart, lte: yearEnd } },
-			select: { date: true, amount: true },
-		}),
-		prisma.expense.findMany({
-			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
 			select: { date: true, amount: true },
 		}),
 		// Previous month data
@@ -176,26 +173,56 @@ export default async function AnalyticsPage({
 	const total = Number(monthlyTotal._sum.amount || 0);
 	const prevTotal = Number(prevMonthTotal._sum.amount || 0);
 
-	// Daily Chart Data
+	// Daily Chart Data (from monthExpenses directly, no need for separate rawExpenses query)
 	const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
 	const dailyData = Array.from({ length: daysInMonth }, (_, i) => ({
 		day: i + 1,
 		total: 0,
 	}));
-	rawExpenses.forEach((exp) => {
+
+	// Day-of-week totals for TimeBasedHabits (pre-aggregate on server)
+	const dayOfWeekTotals = new Array(7).fill(0);
+
+	for (const exp of monthExpenses) {
 		const day = exp.date.getDate();
-		dailyData[day - 1].total += Number(exp.amount);
-	});
+		const amount = Number(exp.amount);
+		dailyData[day - 1].total += amount;
+		dayOfWeekTotals[exp.date.getDay()] += amount;
+	}
 
 	// Monthly Chart Data
 	const monthlyChartData = Array.from({ length: 12 }, (_, i) => ({
 		month: i + 1,
 		total: 0,
 	}));
-	yearExpenses.forEach((exp) => {
+
+	// Heatmap daily map (pre-aggregate on server: "YYYY-MM-DD" -> total)
+	const heatmapDailyMap: Record<string, number> = {};
+	for (const exp of yearExpenses) {
 		const m = exp.date.getMonth();
 		monthlyChartData[m].total += Number(exp.amount);
-	});
+		const dateStr = exp.date.toISOString().split('T')[0];
+		heatmapDailyMap[dateStr] = (heatmapDailyMap[dateStr] || 0) + Number(exp.amount);
+	}
+
+	// Pre-aggregate Top 5 transactions for TopTransactions (server-side)
+	const top5Transactions = monthExpenses
+		.sort((a, b) => Number(b.amount) - Number(a.amount))
+		.slice(0, 5)
+		.map(exp => {
+			const name = getCatName(exp);
+			const userCat = exp.categoryRef
+				? userCategories.find((c) => c.name === exp.categoryRef!.name)
+				: userCategories.find((c) => c.name === exp.category);
+			return {
+				id: exp.id,
+				amount: Number(exp.amount),
+				date: exp.date.toLocaleDateString('vi-VN'),
+				note: exp.note,
+				categoryName: name,
+				categoryIcon: exp.categoryRef?.icon || userCat?.icon || '💸',
+			};
+		});
 
 	// Calculate average daily spending
 	const nonZeroDays = dailyData.filter((d) => d.total > 0).length;
@@ -334,12 +361,12 @@ export default async function AnalyticsPage({
 
 			{/* New Psychological & Transaction Analytics */}
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-				<TopTransactions expenses={monthExpenses as any} />
-				<TimeBasedHabits expenses={rawExpenses.map(e => ({ ...e, date: e.date.toISOString() })) as any} />
+				<TopTransactions transactions={top5Transactions} />
+				<TimeBasedHabits dayOfWeekTotals={dayOfWeekTotals} />
 			</div>
 
       {/* Heatmap */}
-      <SpendingHeatmap data={yearExpenses.map(e => ({ ...e, date: e.date.toISOString() })) as any} />
+      <SpendingHeatmap dailyMap={heatmapDailyMap} />
 
 			{/* Spending Prediction */}
 			<SpendingPrediction

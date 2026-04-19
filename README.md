@@ -296,7 +296,7 @@ App đã được tối ưu cho mobile:
 - ✅ **Server prefetch**: Categories fetch từ server, không client fetch
 - ✅ **Skeleton loading**: Progressive loading với Suspense
 - ✅ **Image optimization**: AVIF/WebP formats, aggressive caching
-- ✅ **Gzip compression**: Enabled trong Next.js config
+- ✅ **Gzip compression**: Enabled trong Next.j s config
 
 ---
 

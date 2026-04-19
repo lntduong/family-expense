@@ -10,6 +10,9 @@ import { MonthCalendar } from '@/components/widgets/MonthCalendar';
 import { BudgetWarning } from '@/components/widgets/BudgetWarning';
 import { Rule503020Card } from '@/components/widgets/Rule503020Card';
 import { SpendingHeatmap } from '@/components/widgets/SpendingHeatmap';
+import { TopTransactions } from '@/components/widgets/TopTransactions';
+import { TimeBasedHabits } from '@/components/widgets/TimeBasedHabits';
+import { SmartCutdownAlert } from '@/components/widgets/SmartCutdownAlert';
 import { 
 	ChartsSkeleton, 
 	MonthComparisonSkeleton, 
@@ -90,7 +93,7 @@ export default async function AnalyticsPage({
 		// Full expenses this month with categoryRef for grouping
 		prisma.expense.findMany({
 			where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
-			select: { amount: true, category: true, categoryId: true, categoryRef: { select: { name: true, icon: true, color: true, ruleType: true } } },
+			select: { id: true, date: true, note: true, amount: true, category: true, categoryId: true, categoryRef: { select: { name: true, icon: true, color: true, ruleType: true } } },
 		}),
 		prisma.expense.findMany({
 			where: { workspaceId, date: { gte: yearStart, lte: yearEnd } },
@@ -236,15 +239,21 @@ export default async function AnalyticsPage({
 				</Suspense>
 			</div>
 
-			{/* Budget Warning - Shows at top if near/over budget */}
-			{budget && (
-				<BudgetWarning
-					current={total}
-					limit={budgetLimit}
-					daysLeft={daysLeft}
-					dailyAverage={averageDaily}
+			{/* Smart Alerts */}
+			<div className="flex flex-col gap-4">
+				{budget && (
+					<BudgetWarning
+						current={total}
+						limit={budgetLimit}
+						daysLeft={daysLeft}
+						dailyAverage={averageDaily}
+					/>
+				)}
+				<SmartCutdownAlert 
+					currentCategories={serializedCategories} 
+					prevCategories={prevCategoriesSummary} 
 				/>
-			)}
+			</div>
 
 			{/* Summary Cards */}
 			<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
@@ -313,6 +322,12 @@ export default async function AnalyticsPage({
         <div className="md:col-span-3">
           <Rule503020Card spent={ruleSpent} budgetLimit={budgetLimit} />
         </div>
+			</div>
+
+			{/* New Psychological & Transaction Analytics */}
+			<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+				<TopTransactions expenses={monthExpenses as any} />
+				<TimeBasedHabits expenses={rawExpenses} />
 			</div>
 
       {/* Heatmap */}

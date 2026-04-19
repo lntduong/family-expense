@@ -87,8 +87,8 @@ export function SpendingPrediction({
 		}
 
 		return {
-			avgDaily,
-			predictedTotal: Math.max(currentTotal, trendAdjusted > 0 ? trendAdjusted : predictedTotal),
+			avgDaily: Math.round(avgDaily),
+			predictedTotal: Math.round(Math.max(currentTotal, trendAdjusted > 0 ? trendAdjusted : predictedTotal)),
 			remainingDays,
 			chartData,
 			trend: trend > 100 ? 'increasing' : trend < -100 ? 'decreasing' : 'stable',
@@ -144,10 +144,10 @@ export function SpendingPrediction({
 							<Target className='h-4 w-4' />
 							Hiện tại
 						</div>
-						<p className='text-xl font-bold'>
+						<p className='text-lg sm:text-xl font-bold truncate' title={currentTotal.toLocaleString('vi-VN') + ' ₫'}>
 							{currentTotal.toLocaleString('vi-VN')} ₫
 						</p>
-						<p className='text-xs text-muted-foreground'>
+						<p className='text-xs text-muted-foreground truncate'>
 							TB {prediction.avgDaily.toLocaleString('vi-VN')} ₫/ngày
 						</p>
 					</div>
@@ -163,12 +163,15 @@ export function SpendingPrediction({
 							)}
 							Dự đoán
 						</div>
-						<p className={`text-xl font-bold ${
-							willExceedBudget ? 'text-red-600' : 'text-green-600'
-						}`}>
+						<p 
+              className={`text-lg sm:text-xl font-bold truncate ${
+							  willExceedBudget ? 'text-red-600' : 'text-green-600'
+						  }`}
+              title={prediction.predictedTotal.toLocaleString('vi-VN') + ' ₫'}
+            >
 							{prediction.predictedTotal.toLocaleString('vi-VN')} ₫
 						</p>
-						<p className='text-xs text-muted-foreground'>
+						<p className='text-xs text-muted-foreground truncate'>
 							Còn {prediction.remainingDays} ngày
 						</p>
 					</div>

@@ -61,20 +61,34 @@ export function BudgetWarning({ current, limit, daysLeft, dailyAverage }: Budget
 		}
 	}, [level, percent, hasNotified]);
 
-	const sendNotification = (level: string, percent: number) => {
+	const sendNotification = async (level: string, percent: number) => {
 		const messages = {
 			exceeded: `⚠️ Bạn đã vượt ngân sách! Đã chi ${percent.toFixed(0)}%`,
 			critical: `🔴 Cảnh báo! Đã chi ${percent.toFixed(0)}% ngân sách`,
 			warning: `🟡 Lưu ý: Đã chi ${percent.toFixed(0)}% ngân sách tháng`,
 		};
 
-		new Notification('Quản lý chi tiêu', {
-			body: messages[level as keyof typeof messages],
+		const body = messages[level as keyof typeof messages];
+		const options = {
+			body,
 			icon: '/icon-192.png',
 			badge: '/icon-192.png',
 			tag: 'budget-warning',
-			renotify: true,
-		});
+		};
+
+		try {
+			// Try Service Worker first (required on mobile)
+			const reg = await navigator.serviceWorker?.ready;
+			if (reg) {
+				await reg.showNotification('Quản lý chi tiêu', options);
+				return;
+			}
+			// Fallback to Notification constructor (desktop only)
+			new Notification('Quản lý chi tiêu', options);
+		} catch {
+			// Silently fail - notification is non-critical
+			console.warn('[BudgetWarning] Cannot show notification on this device');
+		}
 	};
 
 	if (limit === 0 || level === 'safe' || dismissed) {

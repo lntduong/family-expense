@@ -11,6 +11,7 @@ import { BudgetWarning } from '@/components/widgets/BudgetWarning';
 import { Rule503020Card } from '@/components/widgets/Rule503020Card';
 import { TopTransactions } from '@/components/widgets/TopTransactions';
 import { SmartCutdownAlert } from '@/components/widgets/SmartCutdownAlert';
+import { AnalyticsErrorBoundary } from '@/components/widgets/AnalyticsErrorBoundary';
 import { 
 	ChartsSkeleton, 
 	MonthComparisonSkeleton, 
@@ -26,10 +27,12 @@ const Charts = dynamic(() => import('@/components/widgets/Charts').then(mod => (
 
 const MonthComparison = dynamic(() => import('@/components/widgets/MonthComparison').then(mod => ({ default: mod.MonthComparison })), {
 	loading: () => <MonthComparisonSkeleton />,
+	ssr: false,
 });
 
 const SpendingPrediction = dynamic(() => import('@/components/widgets/SpendingPrediction').then(mod => ({ default: mod.SpendingPrediction })), {
 	loading: () => <SpendingPredictionSkeleton />,
+	ssr: false,
 });
 
 const SpendingHeatmap = dynamic(() => import('@/components/widgets/SpendingHeatmap').then(mod => ({ default: mod.SpendingHeatmap })), {
@@ -360,37 +363,47 @@ export default async function AnalyticsPage({
 			</div>
 
 			{/* New Psychological & Transaction Analytics */}
-			<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-				<TopTransactions transactions={top5Transactions} />
-				<TimeBasedHabits dayOfWeekTotals={dayOfWeekTotals} />
-			</div>
+			<AnalyticsErrorBoundary>
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+					<TopTransactions transactions={top5Transactions} />
+					<TimeBasedHabits dayOfWeekTotals={dayOfWeekTotals} />
+				</div>
+			</AnalyticsErrorBoundary>
 
       {/* Heatmap */}
-      <SpendingHeatmap dailyMap={heatmapDailyMap} />
+			<AnalyticsErrorBoundary>
+      	<SpendingHeatmap dailyMap={heatmapDailyMap} />
+			</AnalyticsErrorBoundary>
 
 			{/* Spending Prediction */}
-			<SpendingPrediction
-				dailyData={dailyData}
-				budget={budgetLimit || null}
-				currentTotal={total}
-				daysInMonth={daysInMonth}
-				currentDay={currentDay}
-			/>
+			<AnalyticsErrorBoundary>
+				<SpendingPrediction
+					dailyData={dailyData}
+					budget={budgetLimit || null}
+					currentTotal={total}
+					daysInMonth={daysInMonth}
+					currentDay={currentDay}
+				/>
+			</AnalyticsErrorBoundary>
 
 			{/* Month Comparison */}
-			<MonthComparison
-				currentMonth={currentMonthData}
-				previousMonth={previousMonthData}
-				currentMonthName={currentMonthName}
-				previousMonthName={previousMonthName}
-			/>
+			<AnalyticsErrorBoundary>
+				<MonthComparison
+					currentMonth={currentMonthData}
+					previousMonth={previousMonthData}
+					currentMonthName={currentMonthName}
+					previousMonthName={previousMonthName}
+				/>
+			</AnalyticsErrorBoundary>
 
 			{/* Charts */}
-			<Charts
-				pieData={serializedCategories}
-				dailyData={dailyData}
-				monthlyData={monthlyChartData}
-			/>
+			<AnalyticsErrorBoundary>
+				<Charts
+					pieData={serializedCategories}
+					dailyData={dailyData}
+					monthlyData={monthlyChartData}
+				/>
+			</AnalyticsErrorBoundary>
 		</div>
 	);
 }

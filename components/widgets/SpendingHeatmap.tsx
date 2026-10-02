@@ -69,7 +69,7 @@ export function SpendingHeatmap({ dailyMap }: SpendingHeatmapProps) {
   }
 
   return (
-    <Card className="glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300 overflow-hidden">
+    <Card className="glass-card macos-shadow-sm overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold text-muted-foreground">Mật độ chi tiêu</CardTitle>
       </CardHeader>

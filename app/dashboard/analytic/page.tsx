@@ -295,12 +295,12 @@ export default async function AnalyticsPage({
 
 			{/* Summary Cards */}
 			<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-				<Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+				<Card className='glass-card macos-shadow-sm'>
 					<CardHeader>
-						<CardTitle className='text-sm font-semibold text-muted-foreground'>Tổng chi tiêu</CardTitle>
+						<CardTitle className='text-sm font-semibold text-muted-foreground uppercase tracking-wider'>Tổng chi tiêu</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className='text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent'>
+						<div className='text-3xl font-bold text-foreground'>
 							{total.toLocaleString('vi-VN')} ₫
 						</div>
 						<p className='text-xs text-muted-foreground mt-2 font-medium'>
@@ -309,16 +309,16 @@ export default async function AnalyticsPage({
 					</CardContent>
 				</Card>
 
-				<Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+				<Card className='glass-card macos-shadow-sm'>
 					<CardHeader>
-						<CardTitle className='text-sm font-semibold text-muted-foreground'>
+						<CardTitle className='text-sm font-semibold text-muted-foreground uppercase tracking-wider'>
 							Ngân sách tháng
 						</CardTitle>
 					</CardHeader>
 					<CardContent className='space-y-2'>
 						{budget ? (
 							<>
-								<div className='text-2xl font-bold'>
+								<div className='text-2xl font-bold text-foreground'>
 									{Number(budget.limit).toLocaleString('vi-VN')} ₫
 								</div>
 								<BudgetProgress current={total} limit={Number(budget.limit)} />
@@ -331,9 +331,9 @@ export default async function AnalyticsPage({
 					</CardContent>
 				</Card>
 
-				<Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+				<Card className='glass-card macos-shadow-sm'>
 					<CardHeader>
-						<CardTitle className='text-sm font-semibold text-muted-foreground'>
+						<CardTitle className='text-sm font-semibold text-muted-foreground uppercase tracking-wider'>
 							Danh mục chi nhiều nhất
 						</CardTitle>
 					</CardHeader>
@@ -344,7 +344,7 @@ export default async function AnalyticsPage({
 									{highestCategory.icon && (
 										<span className='text-2xl'>{highestCategory.icon}</span>
 									)}
-									<div className='text-2xl font-bold'>{highestCategory.name}</div>
+									<div className='text-2xl font-bold text-foreground'>{highestCategory.name}</div>
 								</div>
 								<p className='text-xs text-muted-foreground mt-2 font-medium'>
 									{highestCategory.amount.toLocaleString('vi-VN')} ₫

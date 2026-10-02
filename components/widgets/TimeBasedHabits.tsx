@@ -40,7 +40,7 @@ export function TimeBasedHabits({ dayOfWeekTotals }: TimeBasedHabitsProps) {
   }, [dayOfWeekTotals]);
 
   return (
-    <Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+    <Card className='glass-card macos-shadow-sm'>
       <CardHeader>
         <CardTitle className='text-sm font-semibold text-primary flex items-center gap-2'>
           <span>🧠</span> Tâm lý & Thói quen Tiêu tiền

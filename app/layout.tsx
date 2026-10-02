@@ -72,7 +72,7 @@ export default async function RootLayout({
 						<NotificationManager />
 						<div className='max-w-4xl mx-auto px-4 pt-6 pb-24 space-y-6'>
 							<header className='flex items-center justify-between pb-4 mb-6'>
-								<Link href='/' className='text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent'>
+								<Link href='/' className='text-2xl font-bold tracking-tight text-foreground hover:text-primary transition-colors'>
 									Family
 								</Link>
 								<div className="flex items-center gap-2">

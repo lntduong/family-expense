@@ -78,7 +78,7 @@ export function Charts({
 	return (
 		<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 			{/* 1. Biểu đồ chi tiêu hàng ngày trong tháng */}
-			<Card className='md:col-span-2 glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+			<Card className='md:col-span-2 glass-card macos-shadow-sm'>
 				<CardHeader>
 					<CardTitle>Chi tiết mức chi hàng ngày</CardTitle>
 				</CardHeader>
@@ -105,7 +105,7 @@ export function Charts({
 							<Tooltip content={<CustomTooltip />} />
 							<Bar
 								dataKey='total'
-								fill='#0EA5E9'
+								fill='hsl(var(--primary))'
 								radius={[4, 4, 0, 0]}
 								maxBarSize={30}
 							/>
@@ -115,7 +115,7 @@ export function Charts({
 			</Card>
 
 			{/* 2. Biểu đồ Trend chi tiêu các tháng trong năm */}
-			<Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+			<Card className='glass-card macos-shadow-sm'>
 				<CardHeader>
 					<CardTitle className='text-lg font-semibold'>Biến động chi tiêu nguyên năm</CardTitle>
 				</CardHeader>
@@ -156,7 +156,7 @@ export function Charts({
 			</Card>
 
 			{/* 3. Biểu đồ tròn Danh mục */}
-			<Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+			<Card className='glass-card macos-shadow-sm'>
 				<CardHeader>
 					<CardTitle className='text-lg font-semibold'>Chi theo danh mục</CardTitle>
 				</CardHeader>

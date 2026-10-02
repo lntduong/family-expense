@@ -110,7 +110,7 @@ export function QRSettings() {
 	const selectedBank = BANKS.find((b) => b.bin === bankBin);
 
 	return (
-		<div className='glass-card macos-shadow-md p-6 space-y-6'>
+		<div className='glass-card macos-shadow-sm rounded-xl p-6 space-y-6'>
 			<div>
 				<h2 className='text-lg font-semibold'>Cài đặt QR thanh toán</h2>
 				<p className='text-sm text-muted-foreground mt-1'>

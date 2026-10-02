@@ -82,10 +82,10 @@ function QrContent() {
 	return (
 		<div className='max-w-md mx-auto space-y-6 pb-20'>
 			{/* Header */}
-			<div className='glass-card macos-shadow-md p-6'>
+			<div className='glass-card macos-shadow-sm rounded-xl p-6'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h1 className='text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent'>
+						<h1 className='text-xl md:text-2xl font-bold text-foreground'>
 							Tạo QR thanh toán
 						</h1>
 						<p className='text-sm text-muted-foreground mt-1'>
@@ -94,7 +94,7 @@ function QrContent() {
 					</div>
 					<Link 
 						href='/dashboard/settings'
-						className='p-2 rounded-lg hover:bg-muted transition-colors'
+						className='p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors'
 						title='Cài đặt'
 					>
 						<GearIcon className='h-5 w-5 text-muted-foreground' />
@@ -104,7 +104,7 @@ function QrContent() {
 
 			{/* Warning if no settings */}
 			{!hasSettings && (
-				<div className='glass-card macos-shadow p-4 border-amber-500/30 bg-amber-500/5'>
+				<div className='glass-card macos-shadow-sm rounded-xl p-4 border-amber-500/30 bg-amber-500/5'>
 					<p className='text-sm font-medium text-amber-600 dark:text-amber-400'>
 						Chưa cài đặt thông tin ngân hàng
 					</p>
@@ -119,17 +119,17 @@ function QrContent() {
 
 			{/* Account Info Card */}
 			{qrSettings && (
-				<div className='glass-card macos-shadow p-4'>
-					<p className='text-xs text-muted-foreground mb-1'>Người nhận</p>
-					<p className='font-semibold'>{qrSettings.accountName}</p>
-					<p className='text-sm text-muted-foreground font-mono'>{qrSettings.accountNumber}</p>
+				<div className='glass-card macos-shadow-sm rounded-xl p-4 border-l-4 border-primary'>
+					<p className='text-xs text-muted-foreground mb-1 uppercase font-semibold'>Người nhận</p>
+					<p className='font-semibold text-foreground'>{qrSettings.accountName}</p>
+					<p className='text-sm text-muted-foreground font-mono mt-0.5'>{qrSettings.accountNumber}</p>
 				</div>
 			)}
 
 			{/* Form */}
-			<div className='glass-card macos-shadow-md p-6 space-y-4'>
+			<div className='glass-card macos-shadow-sm rounded-xl p-6 space-y-5'>
 				<div>
-					<label className='text-sm font-medium mb-2 block'>Số tiền</label>
+					<label className='text-sm font-semibold mb-2 block'>Số tiền</label>
 					<div className='relative'>
 						<Input
 							type='text'
@@ -137,24 +137,25 @@ function QrContent() {
 							placeholder='0'
 							value={amountStr}
 							onChange={handleAmountChange}
-							className='text-lg font-semibold pr-12'
+							className='text-lg font-bold pr-12 h-12'
 						/>
-						<span className='absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium'>
+						<span className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium'>
 							₫
 						</span>
 					</div>
 				</div>
 				
 				<div>
-					<label className='text-sm font-medium mb-2 block'>Nội dung chuyển khoản</label>
+					<label className='text-sm font-semibold mb-2 block'>Nội dung chuyển khoản</label>
 					<Textarea
 						placeholder='VD: Thanh toán tiền nhà T4'
 						value={desc}
 						onChange={(e) => setDesc(e.target.value)}
 						rows={2}
 						maxLength={25}
+						className='resize-none'
 					/>
-					<p className='text-xs text-muted-foreground mt-1 text-right'>
+					<p className='text-xs text-muted-foreground mt-1.5 text-right font-medium'>
 						{desc.length}/25
 					</p>
 				</div>
@@ -162,7 +163,7 @@ function QrContent() {
 				<Button 
 					onClick={generate} 
 					disabled={loading || !hasSettings || !amountStr} 
-					className='w-full h-12 text-base font-semibold'
+					className='w-full h-12 text-base font-semibold shadow-sm'
 				>
 					{loading ? 'Đang tạo...' : 'Tạo mã QR'}
 				</Button>
@@ -170,9 +171,9 @@ function QrContent() {
 
 			{/* QR Result */}
 			{qr && (
-				<div className='glass-card macos-shadow-lg p-6 space-y-4'>
+				<div className='glass-card macos-shadow-sm rounded-xl p-6 space-y-5'>
 					<div className='flex flex-col items-center'>
-						<div className='bg-white p-4 rounded-2xl shadow-inner'>
+						<div className='bg-white p-4 rounded-2xl shadow-sm border'>
 							<img
 								src={qr}
 								alt='VietQR Code'
@@ -180,12 +181,12 @@ function QrContent() {
 							/>
 						</div>
 						
-						<div className='mt-4 text-center'>
-							<p className='text-2xl font-bold text-primary'>
+						<div className='mt-5 text-center'>
+							<p className='text-3xl font-bold text-primary'>
 								{amountStr} ₫
 							</p>
 							{desc && (
-								<p className='text-sm text-muted-foreground mt-1'>
+								<p className='text-sm text-muted-foreground mt-2 px-4'>
 									{desc}
 								</p>
 							)}
@@ -195,7 +196,7 @@ function QrContent() {
 					<a
 						href={qr}
 						download={`vietqr-${amountStr.replace(/\D/g, '')}.png`}
-						className='flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors'
+						className='flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity shadow-sm'
 					>
 						<DownloadIcon className='h-5 w-5' />
 						Tải ảnh QR

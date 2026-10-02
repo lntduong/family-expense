@@ -168,11 +168,11 @@ export function ExpenseList({
 	}
 
 	return (
-		<div className='glass-card macos-shadow-md p-6 space-y-4'>
+		<div className='glass-card macos-shadow-sm rounded-xl p-6 space-y-4'>
 			{/* Header */}
 			<div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
 				<div>
-					<h2 className='text-lg font-semibold'>Lịch sử chi tiêu</h2>
+					<h2 className='text-base font-semibold'>Lịch sử chi tiêu</h2>
 					{userRole !== 'HUSBAND' && (
 						<p className='text-xs text-muted-foreground'>← Vuốt trái để xóa</p>
 					)}

@@ -15,7 +15,7 @@ interface TopTransactionsProps {
 
 export function TopTransactions({ transactions }: TopTransactionsProps) {
   return (
-    <Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+    <Card className='glass-card macos-shadow-sm'>
       <CardHeader>
         <CardTitle className='text-sm font-semibold text-destructive flex items-center gap-2'>
           <span>🚨</span> Kẻ thù Ngân sách (Top Chi tiêu)

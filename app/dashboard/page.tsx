@@ -87,8 +87,7 @@ export default async function DashboardPage({
 	const avgDaily = total / nonZeroDays;
 
 	return (
-		<div className='space-y-6 pb-20'>
-			{/* Budget Warning - Shows prominently if over budget */}
+		<div className='space-y-6 pb-20 max-w-5xl mx-auto'>
 			{budget && (
 				<BudgetWarning
 					current={total}
@@ -98,28 +97,14 @@ export default async function DashboardPage({
 				/>
 			)}
 
-			{/* Quick Add - First thing user sees */}
-			<div className='glass-card macos-shadow-md p-6'>
-				<h2 className='text-lg font-semibold mb-4'>Ghi nhanh chi tiêu</h2>
-				<QuickAdd categories={userCategories} />
-			</div>
-
-			{/* Month Calendar */}
-			<Suspense fallback={<MonthCalendarSkeleton />}>
-				<MonthCalendar
-					currentMonth={targetMonth + 1}
-					currentYear={targetYear}
-				/>
-			</Suspense>
-
-			{/* Stats Cards */}
+			{/* Stats Cards - Đưa lên đầu để người dùng có tổng quan ngay */}
 			<div className='grid grid-cols-2 gap-4'>
-				<Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+				<Card className='glass-card macos-shadow-sm'>
 					<CardHeader className='pb-2'>
-						<CardTitle className='text-xs font-semibold text-muted-foreground'>Đã chi tháng này</CardTitle>
+						<CardTitle className='text-xs font-medium text-muted-foreground uppercase tracking-wider'>Đã chi tháng này</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className='text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent truncate'>
+						<p className='text-2xl sm:text-3xl font-bold truncate text-foreground'>
 							{total >= 1000000000 
 								? `${(total / 1000000000).toFixed(1)}tỷ`
 								: total >= 1000000 
@@ -128,14 +113,14 @@ export default async function DashboardPage({
 						</p>
 					</CardContent>
 				</Card>
-				<Card className='glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300'>
+				<Card className='glass-card macos-shadow-sm'>
 					<CardHeader className='pb-2'>
-						<CardTitle className='text-xs font-semibold text-muted-foreground'>Ngân sách</CardTitle>
+						<CardTitle className='text-xs font-medium text-muted-foreground uppercase tracking-wider'>Ngân sách</CardTitle>
 					</CardHeader>
 					<CardContent>
 						{budget ? (
 							<div className='space-y-2'>
-								<p className='text-lg sm:text-2xl font-bold truncate'>
+								<p className='text-2xl sm:text-3xl font-bold truncate text-foreground'>
 									{Number(budget.limit) >= 1000000000 
 										? `${(Number(budget.limit) / 1000000000).toFixed(1)}tỷ`
 										: Number(budget.limit) >= 1000000 
@@ -154,10 +139,30 @@ export default async function DashboardPage({
 				</Card>
 			</div>
 
-			{/* Expense History */}
-			<Suspense fallback={<ExpenseListSkeleton />}>
-				<ExpenseList initial={expenses} userRole={(session?.user as any)?.role} />
-			</Suspense>
+			<div className='grid grid-cols-1 lg:grid-cols-12 gap-6'>
+				<div className='lg:col-span-5 space-y-6'>
+					{/* Quick Add */}
+					<div className='glass-card macos-shadow-sm p-6 rounded-xl'>
+						<h2 className='text-base font-semibold mb-4'>Ghi nhanh chi tiêu</h2>
+						<QuickAdd categories={userCategories} />
+					</div>
+
+					{/* Month Calendar */}
+					<Suspense fallback={<MonthCalendarSkeleton />}>
+						<MonthCalendar
+							currentMonth={targetMonth + 1}
+							currentYear={targetYear}
+						/>
+					</Suspense>
+				</div>
+				
+				<div className='lg:col-span-7 space-y-6'>
+					{/* Expense History */}
+					<Suspense fallback={<ExpenseListSkeleton />}>
+						<ExpenseList initial={expenses} userRole={(session?.user as any)?.role} />
+					</Suspense>
+				</div>
+			</div>
 		</div>
 	);
 }

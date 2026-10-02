@@ -80,7 +80,7 @@ export function MonthComparison({
 	};
 
 	return (
-		<Card className='glass-card macos-shadow'>
+		<Card className='glass-card macos-shadow-sm'>
 			<CardHeader>
 				<CardTitle className='flex items-center justify-between'>
 					<span>So sánh với tháng trước</span>
@@ -163,7 +163,7 @@ export function MonthComparison({
 								/>
 								<Bar 
 									dataKey={currentMonthName} 
-									fill='#0EA5E9' 
+									fill='hsl(var(--primary))' 
 									radius={[0, 4, 4, 0]}
 									maxBarSize={20}
 								/>

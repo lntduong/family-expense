@@ -95,7 +95,7 @@ export function WorkspaceSettings({
   }
 
   return (
-    <Card className='glass-card macos-shadow'>
+    <Card className='glass-card macos-shadow-sm rounded-xl'>
       <CardHeader>
         <CardTitle className='flex items-center gap-2 text-base'>
           <Users className='w-4 h-4' />

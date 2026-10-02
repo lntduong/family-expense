@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,7 @@ export default function LoginPage() {
 
 	return (
 		<div className='flex items-center justify-center min-h-[70vh] py-10'>
-			<Card className='w-full max-w-md'>
+			<Card className='w-full max-w-md glass-card macos-shadow-sm rounded-xl'>
 				<CardHeader>
 					<CardTitle>Đăng nhập</CardTitle>
 					<CardDescription>Quản lý chi tiêu gia đình</CardDescription>

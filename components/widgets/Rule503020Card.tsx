@@ -25,7 +25,7 @@ export function Rule503020Card({ spent, budgetLimit }: Rule503020Props) {
   const savingsPct = (spent.SAVINGS / totalLimit) * 100;
 
   return (
-    <Card className="glass-card macos-shadow hover:macos-shadow-lg transition-shadow duration-300">
+    <Card className="glass-card macos-shadow-sm">
       <CardHeader>
         <CardTitle className="text-sm font-semibold text-muted-foreground flex justify-between items-center">
           <span>Quy tắc 50/30/20</span>

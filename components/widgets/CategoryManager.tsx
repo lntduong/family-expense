@@ -164,7 +164,7 @@ export function CategoryManager() {
 	}
 
 	return (
-		<div className='glass-card macos-shadow-md p-6 space-y-6'>
+		<div className='glass-card macos-shadow-sm rounded-xl p-6 space-y-6'>
 			{/* Header with Add Button */}
 			<div className='flex items-center justify-between'>
 				<h2 className='text-lg font-semibold'>Danh mục chi tiêu</h2>
@@ -175,7 +175,7 @@ export function CategoryManager() {
 							Thêm danh mục
 						</Button>
 					</DialogTrigger>
-					<DialogContent className='glass-card macos-shadow-lg border-border/50'>
+					<DialogContent className='glass-card macos-shadow-lg rounded-xl border-border/50'>
 						<DialogHeader>
 							<DialogTitle>Tạo danh mục mới</DialogTitle>
 						</DialogHeader>

@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     monthEnd = new Date(searchParams.get("to")!);
   }
 
-  const [monthlyTotal, workspace, budget, categoryBreakdown] = await Promise.all([
+  const [monthlyTotal, workspace, budget, categoryBreakdown, expensesLast7Days] = await Promise.all([
     prisma.expense.aggregate({
       _sum: { amount: true },
       where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
@@ -39,8 +39,32 @@ export async function GET(req: Request) {
       by: ['category'],
       _sum: { amount: true },
       where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
+    }),
+    prisma.expense.findMany({
+      where: { 
+        workspaceId, 
+        date: { gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) } 
+      },
+      select: { date: true, amount: true }
     })
   ]);
+
+  // Process last 7 days
+  const last7DaysMap = new Map<string, number>();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+    last7DaysMap.set(dateStr, 0);
+  }
+
+  expensesLast7Days.forEach(exp => {
+    const dateStr = exp.date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+    if (last7DaysMap.has(dateStr)) {
+      last7DaysMap.set(dateStr, last7DaysMap.get(dateStr)! + Number(exp.amount));
+    }
+  });
+
+  const last7Days = Array.from(last7DaysMap.entries()).map(([date, amount]) => ({ date, amount }));
 
   return NextResponse.json({
     totalSpent: Number(monthlyTotal._sum.amount || 0),
@@ -49,6 +73,7 @@ export async function GET(req: Request) {
     categoryBreakdown: categoryBreakdown.map(c => ({
       category: c.category || 'Khác',
       total: Number(c._sum.amount || 0)
-    })).sort((a, b) => b.total - a.total)
+    })).sort((a, b) => b.total - a.total),
+    last7Days
   });
 }

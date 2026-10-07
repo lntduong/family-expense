@@ -23,14 +23,19 @@ export async function GET(req: Request) {
     monthEnd = new Date(searchParams.get("to")!);
   }
 
-  const [monthlyTotal] = await Promise.all([
+  const [monthlyTotal, workspace] = await Promise.all([
     prisma.expense.aggregate({
       _sum: { amount: true },
       where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
     }),
+    prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      select: { name: true }
+    })
   ]);
 
   return NextResponse.json({
-    totalSpent: Number(monthlyTotal._sum.amount || 0)
+    totalSpent: Number(monthlyTotal._sum.amount || 0),
+    workspaceName: workspace?.name || 'Cá nhân'
   });
 }

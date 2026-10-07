@@ -92,6 +92,9 @@ export async function DELETE(req: Request) {
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
   
   const workspaceId = await getCurrentWorkspaceId(session.user.id);
+  if (!workspaceId) {
+    return NextResponse.json({ error: "No workspace" }, { status: 400 });
+  }
   
   // Find expense before deleting to get its info
   const exp = await prisma.expense.findFirst({ where: { id, workspaceId } });

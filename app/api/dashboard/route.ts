@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     monthEnd = new Date(searchParams.get("to")!);
   }
 
-  const [monthlyTotal, workspace] = await Promise.all([
+  const [monthlyTotal, workspace, budget, categoryBreakdown] = await Promise.all([
     prisma.expense.aggregate({
       _sum: { amount: true },
       where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
@@ -31,11 +31,24 @@ export async function GET(req: Request) {
     prisma.workspace.findUnique({
       where: { id: workspaceId },
       select: { name: true }
+    }),
+    prisma.budget.findFirst({
+      where: { workspaceId, month: now.getMonth() + 1, year: now.getFullYear() },
+    }),
+    prisma.expense.groupBy({
+      by: ['category'],
+      _sum: { amount: true },
+      where: { workspaceId, date: { gte: monthStart, lte: monthEnd } },
     })
   ]);
 
   return NextResponse.json({
     totalSpent: Number(monthlyTotal._sum.amount || 0),
-    workspaceName: workspace?.name || 'Cá nhân'
+    workspaceName: workspace?.name || 'Cá nhân',
+    budgetLimit: budget ? Number(budget.limit) : null,
+    categoryBreakdown: categoryBreakdown.map(c => ({
+      category: c.category || 'Khác',
+      total: Number(c._sum.amount || 0)
+    })).sort((a, b) => b.total - a.total)
   });
 }

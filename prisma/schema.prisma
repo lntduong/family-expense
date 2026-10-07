@@ -30,6 +30,7 @@ model User {
   pushSubscriptions PushSubscription[]
   ownedWorkspaces   Workspace[]        @relation("WorkspaceOwner")
   workspaces        Workspace[]        @relation("WorkspaceMembers")
+  notifications     Notification[]
 }
 
 model Workspace {
@@ -44,6 +45,7 @@ model Workspace {
   expenses    Expense[]
   budgets     Budget[]
   categories  Category[]
+  notifications Notification[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -135,4 +137,19 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([workspaceId])
 }

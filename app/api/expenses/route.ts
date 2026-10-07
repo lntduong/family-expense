@@ -32,6 +32,32 @@ export async function POST(req: Request) {
     data,
     include: { categoryRef: true },
   });
+
+  // Create notifications for all workspace members
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    include: { members: true, owner: true }
+  });
+
+  if (workspace) {
+    // Collect all members and owner
+    const usersToNotify = [...workspace.members.map(m => m.id), workspace.owner.id];
+    // Filter duplicates just in case
+    const uniqueUsers = Array.from(new Set(usersToNotify));
+    
+    const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+    const message = `Có một khoản chi ${formatter.format(Number(data.amount))} vừa được thêm vào danh mục ${data.category || 'Khác'}.`;
+    
+    await prisma.notification.createMany({
+      data: uniqueUsers.map(userId => ({
+        userId,
+        workspaceId,
+        title: "Chi tiêu mới",
+        message
+      }))
+    });
+  }
+
   return NextResponse.json(exp);
 }
 
@@ -67,6 +93,32 @@ export async function DELETE(req: Request) {
   
   const workspaceId = await getCurrentWorkspaceId(session.user.id);
   
+  // Find expense before deleting to get its info
+  const exp = await prisma.expense.findFirst({ where: { id, workspaceId } });
+  
   await prisma.expense.deleteMany({ where: { id, workspaceId } });
+
+  if (exp) {
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      include: { members: true, owner: true }
+    });
+
+    if (workspace) {
+      const usersToNotify = Array.from(new Set([...workspace.members.map(m => m.id), workspace.owner.id]));
+      const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+      const message = `Một khoản chi ${formatter.format(Number(exp.amount))} (${exp.category || 'Khác'}) vừa bị xóa.`;
+      
+      await prisma.notification.createMany({
+        data: usersToNotify.map(userId => ({
+          userId,
+          workspaceId,
+          title: "Xóa chi tiêu",
+          message
+        }))
+      });
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }

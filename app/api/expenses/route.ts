@@ -125,3 +125,61 @@ export async function DELETE(req: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function PUT(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+  
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+  const body = await req.json();
+  const parsed = expenseSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
+
+  const workspaceId = await getCurrentWorkspaceId(session.user.id);
+  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+
+  // Verify expense exists and belongs to workspace
+  const existing = await prisma.expense.findFirst({ where: { id, workspaceId } });
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const data: any = { ...parsed.data };
+  
+  if (data.categoryId) {
+    const cat = await prisma.category.findUnique({
+      where: { id: data.categoryId },
+      select: { name: true },
+    });
+    if (cat) data.category = cat.name;
+  }
+
+  const exp = await prisma.expense.update({
+    where: { id },
+    data,
+    include: { categoryRef: true },
+  });
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    include: { members: true, owner: true }
+  });
+
+  if (workspace) {
+    const usersToNotify = Array.from(new Set([...workspace.members.map(m => m.id), workspace.owner.id]));
+    const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+    const message = `Khoản chi ${formatter.format(Number(exp.amount))} (${exp.category || 'Khác'}) vừa được cập nhật.`;
+    
+    await prisma.notification.createMany({
+      data: usersToNotify.map(userId => ({
+        userId,
+        workspaceId,
+        title: "Cập nhật chi tiêu",
+        message
+      }))
+    });
+  }
+
+  return NextResponse.json(exp);
+}

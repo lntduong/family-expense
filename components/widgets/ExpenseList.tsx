@@ -127,28 +127,52 @@ export function ExpenseList({
 	const [items, setItems] = useState(initial);
 	const [query, setQuery] = useState('');
 	const [page, setPage] = useState(1);
+	const [globalResults, setGlobalResults] = useState<any[] | null>(null);
+	const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
 
 	useEffect(() => setItems(initial), [initial]);
 
-	// Reset về trang 1 khi search
-	useEffect(() => { setPage(1); }, [query]);
+	// Reset về trang 1 và tắt global search khi đổi query
+	useEffect(() => { 
+		setPage(1); 
+		setGlobalResults(null);
+	}, [query]);
+
+	async function handleGlobalSearch() {
+		if (!query.trim()) return;
+		setIsSearchingGlobal(true);
+		try {
+			const res = await fetch(`/api/expenses/search?q=${encodeURIComponent(query)}`);
+			if (res.ok) {
+				const data = await res.json();
+				setGlobalResults(data);
+			}
+		} catch (error) {
+			console.error('Lỗi tìm kiếm toàn cầu', error);
+		} finally {
+			setIsSearchingGlobal(false);
+		}
+	}
 
 	const filtered = items.filter(
 		(i) =>
 			i.note?.toLowerCase().includes(query.toLowerCase()) ||
-			i.category?.toLowerCase().includes(query.toLowerCase()),
+			i.category?.toLowerCase().includes(query.toLowerCase()) ||
+			i.categoryRef?.name?.toLowerCase().includes(query.toLowerCase()),
 	);
+
+	const sourceData = globalResults !== null ? globalResults : filtered;
 
 	// Group by date
 	const groupedByDate = useMemo(() => {
-		return filtered.reduce((acc, exp) => {
+		return sourceData.reduce((acc, exp) => {
 			const d = new Date(exp.date);
 			const dateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 			if (!acc[dateKey]) acc[dateKey] = [];
 			acc[dateKey].push(exp);
 			return acc;
 		}, {} as Record<string, any[]>);
-	}, [filtered]);
+	}, [sourceData]);
 
 	const sortedDates = useMemo(
 		() => Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a)),
@@ -188,11 +212,35 @@ export function ExpenseList({
 				</div>
 			</div>
 
+			{/* Global Search Notice / Action */}
+			{query.trim().length > 0 && globalResults === null && (
+				<div className="flex flex-col sm:flex-row items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/50 gap-3">
+					<p className="text-sm text-muted-foreground text-center sm:text-left">
+						Đang tìm trong tháng hiện tại. Cần tìm các tháng cũ hơn?
+					</p>
+					<Button 
+						size="sm" 
+						onClick={handleGlobalSearch} 
+						disabled={isSearchingGlobal}
+						className="w-full sm:w-auto"
+					>
+						{isSearchingGlobal ? 'Đang quét...' : 'Tìm toàn bộ lịch sử'}
+					</Button>
+				</div>
+			)}
+
+			{globalResults !== null && (
+				<div className="flex items-center justify-between bg-primary/10 p-3 rounded-lg text-sm text-primary font-medium border border-primary/20">
+					<span>Đang hiển thị kết quả toàn hệ thống cho "{query}"</span>
+					<Button size="sm" variant="ghost" onClick={() => { setGlobalResults(null); setQuery(''); }}>Đóng</Button>
+				</div>
+			)}
+
 			{/* Expense List */}
-			{filtered.length === 0 ? (
+			{sourceData.length === 0 ? (
 				<div className='text-center py-12 text-muted-foreground'>
 					<p className='text-4xl mb-2'>📭</p>
-					<p>Chưa có khoản chi nào</p>
+					<p>Không tìm thấy giao dịch nào</p>
 				</div>
 			) : (
 				<>
@@ -297,7 +345,7 @@ export function ExpenseList({
 
 					{/* Summary */}
 					<p className='text-center text-xs text-muted-foreground'>
-						Trang {page}/{totalPages} • {sortedDates.length} ngày • {filtered.length} khoản
+						Trang {page}/{totalPages} • {sortedDates.length} ngày • {sourceData.length} khoản {globalResults !== null ? '(Toàn thời gian)' : ''}
 					</p>
 				</>
 			)}

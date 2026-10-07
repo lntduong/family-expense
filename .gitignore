@@ -57,3 +57,6 @@ prisma/*.db-journal
 *.history
 *.npm-cache
 *.npm-global
+
+# Mobile App
+mobile-app/
